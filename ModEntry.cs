@@ -129,11 +129,6 @@ namespace PolyamorySweetLove
             );
 
             harmony.Patch(
-               original: AccessTools.Method(typeof(NPC), nameof(NPC.setUpForOutdoorPatioActivity)),
-               prefix: new HarmonyMethod(typeof(NPCPatches), nameof(NPCPatches.NPC_setUpForOutdoorPatioActivity_Prefix))
-            );
-
-            harmony.Patch(
                original: AccessTools.Method(typeof(NPC), nameof(NPC.playSleepingAnimation)),
                prefix: new HarmonyMethod(typeof(NPCPatches), nameof(NPCPatches.NPC_playSleepingAnimation_Prefix)),
                postfix: new HarmonyMethod(typeof(NPCPatches), nameof(NPCPatches.NPC_playSleepingAnimation_Postfix))
@@ -628,7 +623,7 @@ namespace PolyamorySweetLove
                 TryForce(JaneGrey, Game1.player);
 
 
-                sweetRoomsAPI.ResetRooms(farmHouse);
+                //sweetRoomsAPI.ResetRooms(farmHouse);
             /*
              * trying to prevent house draw crash
              * 
