@@ -18,7 +18,7 @@ namespace PolyamorySweetLove
 
         public static void LoadModApis()
         {
-            kissingAPI = SHelper.ModRegistry.GetApi<IKissingAPI>("aedenthorn.HugsAndKisses");
+            kissingAPI = SHelper.ModRegistry.GetApi<IKissingAPI>("ApryllForever.PolyamoryKiss");
             polyamorySweetBedAPI = SHelper.ModRegistry.GetApi<IPolyamorySweetBedAPI>("ApryllForever.PolyamorySweetBed");
             childrenAPI = SHelper.ModRegistry.GetApi<IChildrenTweaksAPI>("aedenthorn.ChildrenTweaks");
             sweetRoomsAPI = SHelper.ModRegistry.GetApi<ISweetRoomsAPI>("ApryllForever.PolyamorySweetRooms");
@@ -26,23 +26,23 @@ namespace PolyamorySweetLove
 
             if (kissingAPI != null)
             {
-                SMonitor.Log("Kissing API loaded");
+                SMonitor.Log("Polyamory Sweet Kiss API loaded");
             }
             if (polyamorySweetBedAPI != null)
             {
-                SMonitor.Log("PolyamorySweetBed API loaded");
+                SMonitor.Log("Polyamory Sweet Bed API loaded");
             }
             if (childrenAPI != null)
             {
-                SMonitor.Log("ChildrenTweaks API loaded");
+                SMonitor.Log("Polyamory Sweet Children API loaded");
             }
             if (sweetRoomsAPI != null)
             {
-                SMonitor.Log("CustomSpouseRooms API loaded");
+                SMonitor.Log("Polyamory Sweet Rooms API loaded");
             }
             if (plannedParenthoodAPI != null)
             {
-                SMonitor.Log("PlannedParenthood API loaded");
+                SMonitor.Log("Polyamory Sweet Parenthood API loaded");
             }
             contentPatcherAPI = SHelper.ModRegistry.GetApi<IContentPatcherAPI>("Pathoschild.ContentPatcher");
             if (contentPatcherAPI is not null)

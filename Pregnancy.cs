@@ -56,7 +56,7 @@ namespace PolyamorySweetLove
 
             if (plannedParenthoodAPI is not null && plannedParenthoodAPI.GetPartnerTonight() is not null)
             {
-                SMonitor.Log($"Handing farm sleep event off to Planned Parenthood");
+                SMonitor.Log($"Handing farm sleep event off to Polyamory Sweet Parenthood");
                 return true;
             }
 

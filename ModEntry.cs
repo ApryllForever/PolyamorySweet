@@ -1,8 +1,11 @@
 ﻿using HarmonyLib;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Input;
 using PolyamorySweetLove;
 using SpaceCore.Events;
 using StardewModdingAPI;
+using StardewModdingAPI.Enums;
+using StardewModdingAPI.Events;
 using StardewValley;
 using StardewValley.Audio;
 using StardewValley.Characters;
@@ -25,6 +28,10 @@ namespace PolyamorySweetLove
     /// <summary>The mod entry point.</summary>
     public partial class ModEntry : Mod
     {
+
+        public static bool Button = false;
+        public static bool Proposal_Sweet = false;
+
 
         public static IMonitor SMonitor;
         public static IModHelper SHelper;
@@ -63,9 +70,15 @@ namespace PolyamorySweetLove
             helper.Events.GameLoop.DayStarted += GameLoop_DayStarted;
             helper.Events.GameLoop.OneSecondUpdateTicked += GameLoop_OneSecondUpdateTicked;
 
+            helper.Events.Input.ButtonPressed += OnButtonPressed;
+            helper.Events.Input.ButtonReleased += OnButtonReleased;
+
             helper.Events.Content.AssetRequested += Content_AssetRequested;
 
+            helper.Events.Specialized.LoadStageChanged += OnLoadStageChanged;
+
             SpaceEvents.BeforeGiftGiven += AforeGiftGiven;
+            SpaceEvents.AfterGiftGiven += AfterGiftGiven;
 
             Helper.ConsoleCommands.Add("Proposal_Sweet_Attempt", "Attempt engagement to a character.", new Action<string, string[]>(proposalAttempt));
             Helper.ConsoleCommands.Add("Proposal_Sweet_Force", "Force engagement to a character.", new Action<string, string[]>(proposalForce));
@@ -510,7 +523,7 @@ namespace PolyamorySweetLove
 
         public static void AforeGiftGiven(object sender, EventArgsBeforeReceiveObject e)
         {
-
+            /*
             if (sender != Game1.player)
                 return;
             ModEntry.ResetSpouses(Game1.player);
@@ -520,49 +533,369 @@ namespace PolyamorySweetLove
             Game1.player.friendshipData.TryGetValue(c.Name, out friendship);
 
 
-            if (e.Gift.Name.Equals("Áine Flower"))
 
+            if (e.Gift.Name.Equals("Áine Flower"))
             {
-                //if (c.Equals(Game1.player.spouse) || c.Equals(roomie))
-                if (ModEntry.GetSpouses(Game1.player, true).ContainsKey(c.Name))
+
+                e.Cancel = true;
+
+                if (Button == true)
                 {
-                    //if (ModEntry.GetSpouses(Game1.player, true).ContainsKey(c.Name))
+                   
+
+                    //if (c.Equals(Game1.player.spouse) || c.Equals(roomie))
+                    if (ModEntry.GetSpouses(Game1.player, true).ContainsKey(c.Name))
                     {
-                        Game1.player.spouse = c.Name;
-                        ModEntry.ResetSpouses(Game1.player);
-                        Game1.currentLocation.playSound("dwop", null, null, SoundContext.NPC);
 
                         {
-                            FarmHouse fh = Utility.getHomeOfFarmer(Game1.player);
-                            fh.showSpouseRoom();
-                            if (Game1.player.currentLocation == fh)
+                            Game1.player.spouse = c.Name;
+                            ModEntry.ResetSpouses(Game1.player);
+                            Game1.currentLocation.playSound("dwop", null, null, SoundContext.NPC);
+
                             {
-                                SHelper.Reflection.GetMethod(fh, "resetLocalState").Invoke();
-                            }
-                            else
-                            {
-                                Game1.addHUDMessage(new HUDMessage("The room and patio will change when you enter the farmhouse."));
+                                FarmHouse fh = Utility.getHomeOfFarmer(Game1.player);
+                                fh.showSpouseRoom();
+                                if (Game1.player.currentLocation == fh)
+                                {
+                                    SHelper.Reflection.GetMethod(fh, "resetLocalState").Invoke();
+                                }
+                                else
+                                {
+                                    Game1.addHUDMessage(new HUDMessage("The room and patio will change when you enter the farmhouse."));
+                                }
                             }
                         }
                     }
-                }
 
 
-                else if (friendship.Points < 2000)
-                {
-                    Game1.drawObjectDialogue(Game1.content.LoadString("Strings\\StringsFromCSFiles:AineFlower_reject", c.displayName));
+                    else if (friendship.Points < 2000)
+                    {
+                        Game1.drawObjectDialogue(Game1.content.LoadString("Strings\\StringsFromCSFiles:AineFlower_reject", c.displayName));
+                    }
+                    else
+                    {
+                        Game1.drawObjectDialogue(Game1.content.LoadString("Strings\\StringsFromCSFiles:AineFlower_accept", c.displayName));
+                        Game1.player.changeFriendship(5, c);
+                    }
+
+
+                    e.Cancel = true;
+
+
                 }
-                else
-                {
-                    Game1.drawObjectDialogue(Game1.content.LoadString("Strings\\StringsFromCSFiles:AineFlower_accept", c.displayName));
-                    Game1.player.changeFriendship(5, c);
-                }
-            }
+            }*/
 
         }
 
-        public static bool Button = false;
-        public static bool Proposal_Sweet = false;
+        public static void AfterGiftGiven(object sender, EventArgsGiftGiven e)
+        {
+
+
+            if (sender != Game1.player)
+                return;
+            if (e.Gift.Name.Equals("Mermaid Bouquet"))
+                {
+                e.Npc.CurrentDialogue.Pop();
+
+                Friendship friendship;
+                Game1.player.friendshipData.TryGetValue(e.Npc.Name, out friendship);
+
+                 
+                {
+                    SMonitor.Log($"Try give mermaid bouquet to {e.Npc.Name}");
+
+                    string accept = $"Characters\\Dialogue\\{e.Npc.Name}:AcceptBouquet";
+                    string rejectDivorced = $"Characters\\Dialogue\\{e.Npc.Name}:RejectBouquet_Divorced";
+                    string rejectNotDatable = $"Characters\\Dialogue\\{e.Npc.Name}:RejectBouquet_NotDatable";
+                    string rejectNpcAlreadyMarried = $"Characters\\Dialogue\\{e.Npc.Name}:RejectBouquet_NpcAlreadyMarried";
+                    string rejectVeryLowHearts = $"Characters\\Dialogue\\{e.Npc.Name}:RejectBouquet_VeryLowHearts";
+                    string rejectLowHearts = $"Characters\\Dialogue\\{e.Npc.Name}:RejectBouquet_LowHearts";
+
+
+                    if (!e.Npc.datable.Value)
+                    {
+
+                        if ((e.Npc.Dialogue.ContainsKey("RejectBouquet_NotDatable")))
+                        {
+                            e.Npc.setNewDialogue(rejectNotDatable, false, false);
+                        }
+
+                        else
+                        {
+
+                            if (Game1.random.NextBool())
+                            {
+                                Game1.drawObjectDialogue(Game1.content.LoadString("Strings\\StringsFromCSFiles:NPC.cs.3955", e.Npc.displayName));
+                            }
+                            else
+                            {
+                                e.Npc.CurrentDialogue.Push(Game1.random.NextBool() ? new Dialogue(e.Npc, "Strings\\StringsFromCSFiles:NPC.cs.3956", false) : new Dialogue(e.Npc, "Strings\\StringsFromCSFiles:NPC.cs.3957", true));
+                            }
+                        }
+
+                        Game1.drawDialogue(e.Npc);
+                       
+                    }
+                    else
+                    {
+                        if (friendship?.IsDating() == true)
+                        {
+                            Game1.drawObjectDialogue(Game1.content.LoadString("Strings\\UI:AlreadyDatingBouquet", e.Npc.displayName));
+                            
+                        }
+                        if (friendship?.IsDivorced() == true)
+
+                            if ((e.Npc.Dialogue.ContainsKey("RejectBouquet_Divorced")))
+                            {
+                                e.Npc.setNewDialogue(rejectDivorced, false, false);
+                            }
+                            else
+                            {
+                                {
+                                    e.Npc.CurrentDialogue.Push(new Dialogue(e.Npc, "Strings\\Characters:Divorced_bouquet", true));
+                                    Game1.drawDialogue(e.Npc);
+                                }
+                            }
+                        if (friendship?.Points < Config.MinPointsToDate / 2f)
+                        {
+                            if ((e.Npc.Dialogue.ContainsKey("RejectBouquet_VeryLowHearts")))
+                            {
+                                e.Npc.setNewDialogue(rejectVeryLowHearts, false, false);
+                            }
+                            else
+                            {
+                                e.Npc.CurrentDialogue.Push(Game1.random.NextBool() ? new Dialogue(e.Npc, "Strings\\StringsFromCSFiles:NPC.cs.3958", false) : new Dialogue(e.Npc, "Strings\\StringsFromCSFiles:NPC.cs.3959", true));
+                                Game1.drawDialogue(e.Npc);
+                            }
+                            
+                        }
+                        if (friendship?.Points < Config.MinPointsToDate)
+                        {
+                            if ((e.Npc.Dialogue.ContainsKey("RejectBouquet_LowHearts")))
+                            {
+                                e.Npc.setNewDialogue(rejectLowHearts, false, false);
+                            }
+                            else
+                            {
+                                e.Npc.CurrentDialogue.Push(new Dialogue(e.Npc, "Strings\\StringsFromCSFiles:NPC.cs." + Game1.random.Choose("3960", "3961"), false));
+                                Game1.drawDialogue(e.Npc);
+                            }
+                           
+                        }
+
+                        //AcceptBouquet
+                        if (friendship?.IsDating() == false)
+                        {
+                            friendship.Status = FriendshipStatus.Dating;
+                            Multiplayer mp = ModEntry.SHelper.Reflection.GetField<Multiplayer>(typeof(Game1), "multiplayer").GetValue();
+                            mp.globalChatInfoMessage("Dating", new string[]
+                            {
+                                    Game1.player.Name,
+                                    e.Npc.displayName
+                            });
+                        }
+
+
+                        if ((e.Npc.Dialogue.ContainsKey("AcceptBouquet")))
+                        {
+                            e.Npc.setNewDialogue(accept, false, false);
+                        }
+                        else
+                        {
+                            e.Npc.CurrentDialogue.Push(new Dialogue(e.Npc, "Strings\\StringsFromCSFiles:NPC.cs." + Game1.random.Choose("3962", "3963"), true));
+                        }
+
+                       Game1.player.changeFriendship(25, e.Npc);
+                        Game1.player.reduceActiveItemByOne();
+                        Game1.player.completelyStopAnimatingOrDoingAction();
+                        e.Npc.doEmote(20, true);
+                        Game1.drawDialogue(e.Npc);
+                        
+                    }
+                }
+            }
+
+            if (e.Gift.Name.Equals("Mermaid Bouquet"))
+            {
+                e.Npc.CurrentDialogue.Pop();
+
+                
+
+                {
+                    //RejectMermaidPendant_Divorced
+                    //RejectMermaidPendant_NeedHouseUpgrade
+                    //RejectMermaidPendant_NotDatable
+                    //RejectMermaidPendant_NpcWithSomeoneElse
+                    //RejectMermaidPendant_PlayerWithSomeoneElse
+                    //RejectMermaidPendant_Under8Hearts
+                    //RejectMermaidPendant_Under10Hearts
+                    //RejectMermaidPendant_Under10Hearts_AskedAgain
+                    //RejectMermaidPendant
+
+                    string acceptpendant = $"Strings\\StringsFromCSFiles\\{e.Npc.Name}:{e.Npc.Name}_Engaged";
+                    string rejectDivorced = $"Characters\\Dialogue\\{e.Npc.Name}:RejectMermaidPendant_Divorced";
+                    string rejectNotDatable = $"Characters\\Dialogue\\{e.Npc.Name}:RejectMermaidPendant_NotDatable";
+                    string rejectNpcAlreadyMarried = $"Characters\\Dialogue\\{e.Npc.Name}:RejectMermaidPendant_NpcWithSomeoneElse";
+                    string rejectPlayerAlreadyMarried = $"Characters\\Dialogue\\{e.Npc.Name}:RejectMermaidPendant_PlayerWithSomeoneElse";
+                    string rejectUnder8Hearts = $"Characters\\Dialogue\\{e.Npc.Name}:RejectMermaidPendant_Under8Hearts";
+                    string rejectUnderTenHearts = $"Characters\\Dialogue\\{e.Npc.Name}:RejectMermaidPendant_Under10Hearts";
+                    string rejectUnderTenHeartsAskedAgain = $"Characters\\Dialogue\\{e.Npc.Name}:RejectMermaidPendant_Under10Hearts_AskedAgain";
+
+
+                    SMonitor.Log($"Try give pendant to {e.Npc.Name}");
+                    if (Game1.player.isEngaged())
+                    {
+                        SMonitor.Log($"Tried to give pendant while engaged");
+
+                        if ((e.Npc.Dialogue.ContainsKey("RejectMermaidPendant_PlayerWithSomeoneElse")))
+                        {
+                            e.Npc.setNewDialogue(rejectPlayerAlreadyMarried, false, false);
+                          
+                        }
+
+                        else
+                        {
+                            e.Npc.CurrentDialogue.Push(new Dialogue(e.Npc, "Strings\\StringsFromCSFiles:NPC.cs." + Game1.random.Choose("3965", "3966"), true));
+                            Game1.drawDialogue(e.Npc);
+                        }
+
+                    }
+
+
+                    if (!e.Npc.datable.Value /*|| __instance.isMarriedOrEngaged() */ )
+                    {
+                        SMonitor.Log($"Tried to give pendant to someone not datable");
+
+                        if ((e.Npc.Dialogue.ContainsKey("RejectMermaidPendant_NotDatable")))
+                        {
+                            e.Npc.setNewDialogue(rejectNotDatable, false, false);
+                        }
+                        else
+                        {
+
+                            if (ModEntry.myRand.NextDouble() < 0.5)
+                            {
+                                Game1.drawObjectDialogue(Game1.content.LoadString("Strings\\StringsFromCSFiles:NPC.cs.3969", e.Npc.displayName));
+                               
+                            }
+                            e.Npc.CurrentDialogue.Push(new Dialogue(e.Npc, "Strings\\StringsFromCSFiles:NPC.cs." + ((e.Npc.Gender == Gender.Female) ? "3970" : "3971"), false));
+                            Game1.drawDialogue(e.Npc);
+
+                        }
+                    }
+
+                    else if (e.Npc.datable.Value && Game1.player.friendshipData.ContainsKey(e.Npc.Name) && Game1.player.friendshipData.ContainsKey(e.Npc.Name) && Game1.player.friendshipData[e.Npc.Name].Points < Config.MinPointsToMarry * 0.6f)
+                    {
+                        SMonitor.Log($"Tried to give pendant to someone with far fewer hearts than the configured amount for marriage.");
+
+                        if (!Game1.player.friendshipData[e.Npc.Name].ProposalRejected)
+                        {
+                            if ((e.Npc.Dialogue.ContainsKey("RejectMermaidPendant_Under8Hearts")))
+                            {
+                                e.Npc.setNewDialogue(rejectUnderTenHearts, false, false);
+                            }
+                            else
+                            {
+                                e.Npc.CurrentDialogue.Push(new Dialogue(e.Npc, "Strings\\StringsFromCSFiles:NPC.cs." + Game1.random.Choose("3972", "3973"), false));
+                            }
+                            Game1.drawDialogue(e.Npc);
+                            Game1.player.changeFriendship(-50, e.Npc);
+                            Game1.player.friendshipData[e.Npc.Name].ProposalRejected = true;
+                            
+                        }
+                        if ((e.Npc.Dialogue.ContainsKey("RejectMermaidPendant_Under10Hearts_AskedAgain")))
+                        {
+                            e.Npc.setNewDialogue(rejectUnderTenHeartsAskedAgain, false, false);
+                        }
+                        else
+                        {
+                            e.Npc.CurrentDialogue.Push(new Dialogue(e.Npc, "Strings\\StringsFromCSFiles:NPC.cs." + Game1.random.Choose("3974", "3975"), true));
+                        }
+                        Game1.drawDialogue(e.Npc);
+                        Game1.player.changeFriendship(-100, e.Npc);
+                       
+                    }
+
+                    else if (e.Npc.datable.Value && Game1.player.friendshipData.ContainsKey(e.Npc.Name) && Game1.player.friendshipData[e.Npc.Name].Points < Config.MinPointsToMarry)
+                    {
+                        SMonitor.Log($"Tried to give pendant to someone with fewer hearts than the config");
+
+                        if (!Game1.player.friendshipData[e.Npc.Name].ProposalRejected)
+                        {
+                            if ((e.Npc.Dialogue.ContainsKey("RejectMermaidPendant_Under10Hearts")))
+                            {
+                                e.Npc.setNewDialogue(rejectUnderTenHearts, false, false);
+                            }
+                            else
+                            {
+
+                                e.Npc.CurrentDialogue.Push(new Dialogue(e.Npc, "Strings\\StringsFromCSFiles:NPC.cs." + Game1.random.Choose("3972", "3973"), false));
+                            }
+                            Game1.drawDialogue(e.Npc);
+                           Game1.player.changeFriendship(-20, e.Npc);
+                            Game1.player.friendshipData[e.Npc.Name].ProposalRejected = true;
+                         
+                        }
+                        e.Npc.CurrentDialogue.Push(new Dialogue(e.Npc, "Strings\\StringsFromCSFiles:NPC.cs." + Game1.random.Choose("3974", "3975"), true));
+                        Game1.drawDialogue(e.Npc);
+                       Game1.player.changeFriendship(-50, e.Npc);
+                       
+                    }
+
+                    //Proposal Success Code
+
+                    else
+                    {
+                        SMonitor.Log($"Tried to give pendant to someone marriable");
+                        if (!e.Npc.datable.Value || Game1.player.HouseUpgradeLevel >= 1)
+                        {
+                            typeof(NPC).GetMethod("engagementResponse", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(e.Npc, new object[] { Game1.player, false });
+  
+                        }
+                        SMonitor.Log($"Can't marry");
+                        if (ModEntry.myRand.NextDouble() < 0.5)
+                        {
+                            Game1.drawObjectDialogue(Game1.content.LoadString("Strings\\StringsFromCSFiles:NPC.cs.3969", e.Npc.displayName));
+                           
+                        }
+                        e.Npc.CurrentDialogue.Push(new Dialogue(e.Npc, "Strings\\StringsFromCSFiles:NPC.cs.3972", false));
+                        Game1.drawDialogue(e.Npc);
+                       
+                    }
+                }
+            }
+
+            if (e.Gift.Name.Equals("Roomie B Gone"))
+            {
+                if(e.Npc.isRoommate())
+                {
+
+                   //FriendshipStatus friendshipStatus = new FriendshipStatus();
+
+                    //e.Npc.divorcedFromFarmer = true;
+
+                    //Game1.player.friendshipData[e.Npc.Name].Status = FriendshipStatus.Divorced;
+                    //FriendshipStatus
+                    e.Npc.CurrentDialogue.Push(new Dialogue(e.Npc, "Strings\\StringsFromCSFiles:RoomieBGone", false));
+                    Game1.drawDialogue(e.Npc);
+                    ModEntry.spouseToDivorce = e.Npc.Name;
+                    Game1.player.divorceTonight.Value = true;
+                }
+                else
+                {
+                    e.Npc.CurrentDialogue.Clear();
+                    e.Npc.CurrentDialogue.Push(new Dialogue(e.Npc, "Strings\\StringsFromCSFiles:NotRoomie", false));
+                    Game1.drawDialogue(e.Npc);
+
+                }
+
+
+
+            }
+
+
+
+        }
 
         public void OnButtonPressed(object sender, EventArgs e)
         {
@@ -622,19 +955,6 @@ namespace PolyamorySweetLove
 
                 TryForce(JaneGrey, Game1.player);
 
-
-                //sweetRoomsAPI.ResetRooms(farmHouse);
-            /*
-             * trying to prevent house draw crash
-             * 
-                FarmHouse fh = Utility.getHomeOfFarmer(Game1.player);
-                fh.showSpouseRoom();
-               // if (Game1.player.currentLocation == fh)
-                {
-                    SHelper.Reflection.GetMethod(fh, "resetLocalState").Invoke();
-                }
-            */
-
                 Monitor.Log($"{Game1.player.Name} is now engaged to {JaneGrey}.", LogLevel.Info);
             }
         }
@@ -692,9 +1012,9 @@ namespace PolyamorySweetLove
                 Game1.drawDialogue(__instance);
 
             }
-            else if (__instance.datable.Value && who.friendshipData.ContainsKey(__instance.Name) && who.friendshipData[__instance.Name].Points < 10) //Math.Min(10, Config.MinPointsToMarry)
+            else if (__instance.datable.Value && who.friendshipData.ContainsKey(__instance.Name) && who.friendshipData[__instance.Name].Points <  Config.MinPointsToMarry) //Math.Min(10, Config.MinPointsToMarry)
             {
-                SMonitor.Log($"Tried to give pendant to someone with fewer hearts than 10.");
+                SMonitor.Log($"Tried to give pendant to someone with fewer hearts than the Config amount.");
 
                 if (!who.friendshipData[__instance.Name].ProposalRejected)
                 {
@@ -863,12 +1183,6 @@ namespace PolyamorySweetLove
                     who.completelyStopAnimatingOrDoingAction();
                     Game1.drawDialogue(__instance);
 
-                    
-
-                    Utility.getHomeOfFarmer(who).showSpouseRoom();
-                    Utility.getHomeOfFarmer(who).setWallpapers();
-                    Utility.getHomeOfFarmer(who).setFloors();
-
                 }
             }
             else
@@ -914,6 +1228,25 @@ namespace PolyamorySweetLove
 
             return Point.Zero;
         }
+
+
+        private void OnLoadStageChanged(object sender, LoadStageChangedEventArgs e)
+        {
+            if (e.NewStage == LoadStage.CreatedInitialLocations || e.NewStage == LoadStage.SaveAddedLocations)
+            {
+                Game1.locations.Add(new LantanaLagoon(Helper.ModContent));
+            }
+
+        }
+
+
+
+
+
+
+
+
+
 
 
     }

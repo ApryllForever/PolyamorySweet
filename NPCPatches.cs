@@ -1,6 +1,7 @@
 ﻿using HarmonyLib;
 using Microsoft.Xna.Framework;
 using PolyamorySweetLove;
+using SpaceCore.UI;
 using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Audio;
@@ -718,7 +719,7 @@ namespace PolyamorySweetLove
                     Game1.drawObjectDialogue(Game1.parseText(Game1.content.LoadString("Strings\\Characters:MovieInvite_NoTheater", __instance.displayName)));
                     return false;
                 }
-                else if (who.ActiveObject.ParentSheetIndex == 808 && __instance.Name.Equals("Krobus"))
+                else if (who.ActiveObject.ParentSheetIndex == 808 && __instance.Name.Equals("Krobus") && ModEntry.Button)
                 {
                     if (who.getFriendshipHeartLevelForNPC(__instance.Name) >= 10 && who.HouseUpgradeLevel >= 1)
                     {
@@ -726,7 +727,7 @@ namespace PolyamorySweetLove
                         return false;
                     }
                 }
-                else if (who.ActiveObject.ParentSheetIndex == 458)
+                else if (who.ActiveObject.ParentSheetIndex == 458 && ModEntry.Button)
                 {
                     Monitor.Log($"Try give bouquet to {__instance.Name}");
 
@@ -859,7 +860,7 @@ namespace PolyamorySweetLove
                         return false;
                     }
                 }
-                else if (who.ActiveObject.ParentSheetIndex == 460)
+                else if (who.ActiveObject.ParentSheetIndex == 460 && ModEntry.Button)
                 {
                     //RejectMermaidPendant_Divorced
                     //RejectMermaidPendant_NeedHouseUpgrade
@@ -1015,8 +1016,9 @@ namespace PolyamorySweetLove
                         return false;
                     }
                 }
-                else if (who.ActiveObject.ParentSheetIndex == 809 && !who.ActiveObject.bigCraftable.Value)
+                else if (who.ActiveObject.ParentSheetIndex == 809 && !who.ActiveObject.bigCraftable.Value && ModEntry.Button)
                 {
+
                     Monitor.Log($"Tried to give movie ticket to {__instance.Name}");
                     if (ModEntry.GetSpouses(who, true).ContainsKey(__instance.Name) && Utility.doesMasterPlayerHaveMailReceivedButNotMailForTomorrow("ccMovieTheater") && !__instance.Name.Equals("Krobus") && who.lastSeenMovieWeek.Value < Game1.Date.TotalWeeks && !Utility.isFestivalDay(Game1.dayOfMonth, Game1.season) && Game1.timeOfDay <= 2100 && __instance.lastSeenMovieWeek.Value < Game1.Date.TotalWeeks && MovieTheater.GetResponseForMovie(__instance) != "reject")
                     {
@@ -1060,6 +1062,61 @@ namespace PolyamorySweetLove
                         }
                     }
                     return true;
+                }
+
+                else if (who.ActiveItem.Name.Equals("Áine Flower") && ModEntry.Button)
+                {
+                    //if (ModEntry.Button == true)
+                    {
+
+
+                        {
+
+
+                            //if (c.Equals(Game1.player.spouse) || c.Equals(roomie))
+                            if (ModEntry.GetSpouses(Game1.player, true).ContainsKey(__instance.Name))
+                            {
+
+                                {
+                                    Game1.player.spouse = __instance.Name;
+                                    ModEntry.ResetSpouses(Game1.player);
+                                    Game1.currentLocation.playSound("dwop", null, null, SoundContext.NPC);
+
+                                    {
+                                        FarmHouse fh = Utility.getHomeOfFarmer(Game1.player);
+                                        fh.showSpouseRoom();
+
+                                        if (Game1.player.currentLocation == fh)
+                                        {
+                                            Helper.Reflection.GetMethod(fh, "resetLocalState").Invoke();
+                                        }
+                                        else
+                                        {
+                                            Game1.addHUDMessage(new HUDMessage("The room and patio will change when you enter the farmhouse."));
+                                        }
+                                        __instance.CurrentDialogue.Push(new Dialogue(__instance, "Strings\\StringsFromCSFiles:AineFlower_spouse", false));
+                                        Game1.drawDialogue(__instance);
+                                    }
+
+                                }
+                                return false;
+                            }
+
+
+                            else if (friendship.Points < 2000)
+                            {
+                                Game1.drawObjectDialogue(Game1.content.LoadString("Strings\\StringsFromCSFiles:AineFlower_reject", __instance.displayName));
+                            }
+                            else
+                            {
+                                Game1.drawObjectDialogue(Game1.content.LoadString("Strings\\StringsFromCSFiles:AineFlower_accept", __instance.displayName));
+                                Game1.player.changeFriendship(5, __instance);
+                            }
+                            return false;
+                        }
+                        return true;
+                    }
+                    
                 }
             }
             catch (Exception ex)

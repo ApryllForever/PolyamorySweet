@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using SpaceShared.APIs;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
@@ -15,6 +16,13 @@ namespace PolyamorySweetLove
 
         private void GameLoop_GameLaunched(object sender, StardewModdingAPI.Events.GameLaunchedEventArgs e)
         {
+            var sc = Helper.ModRegistry.GetApi<ISpaceCoreApi>("spacechase0.SpaceCore");
+
+            sc.RegisterSerializerType(typeof(PolyamoryLocation));
+
+            sc.RegisterSerializerType(typeof(LantanaLagoon));
+
+
             // get Generic Mod Config Menu's API (if it's installed)
             var configMenu = Helper.ModRegistry.GetApi<IGenericModConfigMenuApi>("spacechase0.GenericModConfigMenu");
             if (configMenu is null)
@@ -93,7 +101,7 @@ namespace PolyamorySweetLove
 
             configMenu.AddNumberOption(
                 mod: ModManifest,
-                name: () => "Percent Chance For In Bed",
+                name: () => "Percent Chance For Spouse to Be In Bed",
                 getValue: () => Config.PercentChanceForSpouseInBed,
                 setValue: value => Config.PercentChanceForSpouseInBed = value,
                 min: 0,
@@ -102,7 +110,7 @@ namespace PolyamorySweetLove
 
             configMenu.AddNumberOption(
                 mod: ModManifest,
-                name: () => "Chance For In Kitchen",
+                name: () => "Percent Chance For Spouse to Be In Kitchen",
                 getValue: () => Config.PercentChanceForSpouseInKitchen,
                 setValue: value => Config.PercentChanceForSpouseInKitchen = value,
                 min: 0,
@@ -111,7 +119,7 @@ namespace PolyamorySweetLove
 
             configMenu.AddNumberOption(
                 mod: ModManifest,
-                name: () => "Chance For In Patio",
+                name: () => "Percent Chance For Spouse to Be In Patio",
                 getValue: () => Config.PercentChanceForSpouseAtPatio,
                 setValue: value => Config.PercentChanceForSpouseAtPatio = value,
                 min: 0,

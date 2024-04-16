@@ -161,7 +161,7 @@ namespace PolyamorySweetLove
             }
         }
 
-        public static bool ManorHouse_performAction_Prefix(ManorHouse __instance, string action, Farmer who, ref bool __result)
+        public static bool ManorHouse_performAction_Prefix(ManorHouse __instance, string[] action, Farmer who, ref bool __result)
         {
             try
             {
@@ -169,24 +169,31 @@ namespace PolyamorySweetLove
                 Dictionary<string, NPC> spouses = ModEntry.GetSpouses(who, true);
                 if (action != null && who.IsLocalPlayer && !Game1.player.divorceTonight.Value && (Game1.player.isMarriedOrRoommates() || spouses.Count > 0))
                 {
-                    string a = action.Split(new char[]
+                    switch (ArgUtility.Get(action, 0))
                     {
-                    ' '
-                    })[0];
-                    if (a == "DivorceBook")
-                    {
-                        string str = Helper.Translation.Get("divorce_who");
-                        List<Response> responses = new List<Response>();
-                        foreach (NPC spouse in spouses.Values)
-                        {
-                            responses.Add(new Response(spouse.Name, spouse.displayName));
-                        }
-                        responses.Add(new Response("No", Game1.content.LoadString("Strings\\Lexicon:QuestionDialogue_No")));
-                        __instance.createQuestionDialogue(str, responses.ToArray(), "freelovedivorce");
-                        //__instance.createQuestionDialogue(s2, responses.ToArray(), "divorce");
-                        __result = true;
-                        return false;
+
+                        case "DivorceBook":
+                            {
+                                string str = Helper.Translation.Get("divorce_who");
+                                List<Response> responses = new List<Response>();
+                                foreach (NPC spouse in spouses.Values)
+                                {
+                                    responses.Add(new Response(spouse.Name, spouse.displayName));
+                                }
+                                responses.Add(new Response("No", Game1.content.LoadString("Strings\\Lexicon:QuestionDialogue_No")));
+                                __instance.createQuestionDialogue(str, responses.ToArray(), "freelovedivorce");
+                                //__instance.createQuestionDialogue(s2, responses.ToArray(), "divorce");
+                                __result = true;
+                                return false;
+                                //break;
+                            }
+
                     }
+
+
+
+
+
                 }
             }
             catch (Exception ex)

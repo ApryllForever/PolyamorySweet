@@ -181,7 +181,7 @@ namespace PolyamorySweetLove
                     spouse.setTilePosition(farmHouse.getRandomOpenPointInHouse(myRand));
                     spouse.faceDirection(myRand.Next(0, 4));
                     SMonitor.Log($"{spouse.Name} spouse random loc {spouse.TilePoint}");
-                    spouse.setRandomAfternoonMarriageDialogue(Game1.timeOfDay, farmHouse, false);
+                    spouse.setSpouseRoomMarriageDialogue();// I CAN SET THIS TO ANYTHING!!!        //setRandomAfternoonMarriageDialogue(Game1.timeOfDay, farmHouse, false);
                     porchSpouses.Remove(spouse.Name);
                 }
                 Point spouseRoomSpot = new Point(-1, -1);
