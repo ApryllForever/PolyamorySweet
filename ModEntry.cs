@@ -715,12 +715,9 @@ namespace PolyamorySweetLove
                 }
             }
 
-            if (e.Gift.Name.Equals("Mermaid Bouquet"))
+            if (e.Gift.Name.Equals("Atagartis Pendant"))
             {
                 e.Npc.CurrentDialogue.Pop();
-
-                
-
                 {
                     //RejectMermaidPendant_Divorced
                     //RejectMermaidPendant_NeedHouseUpgrade
@@ -886,7 +883,7 @@ namespace PolyamorySweetLove
                     e.Npc.CurrentDialogue.Clear();
                     e.Npc.CurrentDialogue.Push(new Dialogue(e.Npc, "Strings\\StringsFromCSFiles:NotRoomie", false));
                     Game1.drawDialogue(e.Npc);
-
+                    
                 }
 
 
