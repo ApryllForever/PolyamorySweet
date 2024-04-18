@@ -1094,6 +1094,11 @@ namespace PolyamorySweetLove
                                         {
                                             Game1.addHUDMessage(new HUDMessage("The room and patio will change when you enter the farmhouse."));
                                         }
+
+                                        Game1.player.changeFriendship(25, __instance);
+                                        Game1.player.reduceActiveItemByOne();
+                                        Game1.player.completelyStopAnimatingOrDoingAction();
+                                        __instance.doEmote(20, true);
                                         __instance.CurrentDialogue.Push(new Dialogue(__instance, "Strings\\StringsFromCSFiles:AineFlower_spouse", false));
                                         Game1.drawDialogue(__instance);
                                     }
@@ -1105,12 +1110,21 @@ namespace PolyamorySweetLove
 
                             else if (friendship.Points < 2000)
                             {
-                                Game1.drawObjectDialogue(Game1.content.LoadString("Strings\\StringsFromCSFiles:AineFlower_reject", __instance.displayName));
+                                __instance.CurrentDialogue.Push(new Dialogue(__instance, "Strings\\StringsFromCSFiles:AineFlower_reject", false));
+                                Game1.drawDialogue(__instance);
+                                //Game1.drawObjectDialogue(Game1.content.LoadString("Strings\\StringsFromCSFiles:AineFlower_reject", __instance.displayName));
                             }
                             else
                             {
-                                Game1.drawObjectDialogue(Game1.content.LoadString("Strings\\StringsFromCSFiles:AineFlower_accept", __instance.displayName));
-                                Game1.player.changeFriendship(5, __instance);
+                                Game1.player.reduceActiveItemByOne();
+                                Game1.player.completelyStopAnimatingOrDoingAction();
+                                __instance.doEmote(20, true);
+                                Game1.player.changeFriendship(100, __instance);
+                                __instance.CurrentDialogue.Push(new Dialogue(__instance, "Strings\\StringsFromCSFiles:AineFlower_accept", false));
+                                Game1.drawDialogue(__instance);
+
+                               // Game1.drawObjectDialogue(Game1.content.LoadString("Strings\\StringsFromCSFiles:AineFlower_accept", __instance.displayName));
+                       
                             }
                             return false;
                         }

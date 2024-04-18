@@ -589,8 +589,6 @@ namespace PolyamorySweetLove
 
         public static void AfterGiftGiven(object sender, EventArgsGiftGiven e)
         {
-
-
             if (sender != Game1.player)
                 return;
             if (e.Gift.Name.Equals("Mermaid Bouquet"))
@@ -599,8 +597,7 @@ namespace PolyamorySweetLove
 
                 Friendship friendship;
                 Game1.player.friendshipData.TryGetValue(e.Npc.Name, out friendship);
-
-                 
+ 
                 {
                     SMonitor.Log($"Try give mermaid bouquet to {e.Npc.Name}");
 
@@ -610,7 +607,6 @@ namespace PolyamorySweetLove
                     string rejectNpcAlreadyMarried = $"Characters\\Dialogue\\{e.Npc.Name}:RejectBouquet_NpcAlreadyMarried";
                     string rejectVeryLowHearts = $"Characters\\Dialogue\\{e.Npc.Name}:RejectBouquet_VeryLowHearts";
                     string rejectLowHearts = $"Characters\\Dialogue\\{e.Npc.Name}:RejectBouquet_LowHearts";
-
 
                     if (!e.Npc.datable.Value)
                     {
@@ -705,7 +701,7 @@ namespace PolyamorySweetLove
                             e.Npc.CurrentDialogue.Push(new Dialogue(e.Npc, "Strings\\StringsFromCSFiles:NPC.cs." + Game1.random.Choose("3962", "3963"), true));
                         }
 
-                       Game1.player.changeFriendship(25, e.Npc);
+                        Game1.player.changeFriendship(25, e.Npc);
                         Game1.player.reduceActiveItemByOne();
                         Game1.player.completelyStopAnimatingOrDoingAction();
                         e.Npc.doEmote(20, true);
@@ -844,20 +840,24 @@ namespace PolyamorySweetLove
                     else
                     {
                         SMonitor.Log($"Tried to give pendant to someone marriable");
-                        if (!e.Npc.datable.Value || Game1.player.HouseUpgradeLevel >= 1)
+                        if (!Game1.player.isEngaged() && Game1.player.HouseUpgradeLevel >= 1)
                         {
                             typeof(NPC).GetMethod("engagementResponse", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(e.Npc, new object[] { Game1.player, false });
-  
+
                         }
-                        SMonitor.Log($"Can't marry");
-                        if (ModEntry.myRand.NextDouble() < 0.5)
+
+                        else
                         {
-                            Game1.drawObjectDialogue(Game1.content.LoadString("Strings\\StringsFromCSFiles:NPC.cs.3969", e.Npc.displayName));
-                           
+
+                            SMonitor.Log($"Can't marry");
+                            if (ModEntry.myRand.NextDouble() < 0.5)
+                            {
+                                Game1.drawObjectDialogue(Game1.content.LoadString("Strings\\StringsFromCSFiles:NPC.cs.3969", e.Npc.displayName));
+
+                            }
+                            e.Npc.CurrentDialogue.Push(new Dialogue(e.Npc, "Strings\\StringsFromCSFiles:NPC.cs.3972", false));
+                            Game1.drawDialogue(e.Npc);
                         }
-                        e.Npc.CurrentDialogue.Push(new Dialogue(e.Npc, "Strings\\StringsFromCSFiles:NPC.cs.3972", false));
-                        Game1.drawDialogue(e.Npc);
-                       
                     }
                 }
             }
