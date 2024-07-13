@@ -375,6 +375,17 @@ namespace PolyamorySweetLove
         public static bool NPC_engagementResponse_Prefix(NPC __instance, Farmer who, ref bool asRoommate)
         {
             Monitor.Log($"engagement response for {__instance.Name}");
+            
+            if (__instance.Age == NPC.child)
+            {
+                // The NPC is a child, so we want to ensure it can't accept engagement.
+                asRoommate = true;
+                
+                Monitor.Log($"{__instance.Name} is a child NPC. Refusing engagement.");
+                
+                return true;
+            }
+            
             if (asRoommate)
             {
                 Monitor.Log($"{__instance.Name} is roomate");
