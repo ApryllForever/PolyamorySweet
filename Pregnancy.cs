@@ -166,7 +166,7 @@ namespace PolyamorySweetLove
                     Age = 0,
                     Position = new Vector2(16f, 4f) * 64f + new Vector2(0f + myRand.Next(-64, 48), -24f + myRand.Next(-24, 24)),
                 };
-                baby.modData["ApryllForever.PolyamorySweetLove/OtherParent"] = lastBirthingSpouse.Name;
+                baby.modData["ApryllForever.PolyamorySweetLove/OtherParent"] = lastBirthingSpouse.displayName;
 
                 Utility.getHomeOfFarmer(Game1.player).characters.Add(baby);
                 Game1.playSound("smallSelect");

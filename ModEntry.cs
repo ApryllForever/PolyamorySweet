@@ -64,7 +64,7 @@ namespace PolyamorySweetLove
             mp = helper.Reflection.GetField<Multiplayer>(typeof(Game1), "multiplayer").GetValue();
             myRand = new Random();
 
-            helper.Events.GameLoop.ReturnedToTitle += GameLoop_ReturnedToTitle; ;
+            helper.Events.GameLoop.ReturnedToTitle += GameLoop_ReturnedToTitle;
             helper.Events.GameLoop.GameLaunched += GameLoop_GameLaunched;
             helper.Events.GameLoop.SaveLoaded += GameLoop_SaveLoaded;
             helper.Events.GameLoop.DayStarted += GameLoop_DayStarted;

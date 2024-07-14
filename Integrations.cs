@@ -18,7 +18,7 @@ namespace PolyamorySweetLove
 
         public static void LoadModApis()
         {
-            kissingAPI = SHelper.ModRegistry.GetApi<IKissingAPI>("ApryllForever.PolyamoryKiss");
+            kissingAPI = SHelper.ModRegistry.GetApi<IKissingAPI>("ApryllForever.PolyamorySweetKiss");
             polyamorySweetBedAPI = SHelper.ModRegistry.GetApi<IPolyamorySweetBedAPI>("ApryllForever.PolyamorySweetBed");
             childrenAPI = SHelper.ModRegistry.GetApi<IChildrenTweaksAPI>("aedenthorn.ChildrenTweaks");
             sweetRoomsAPI = SHelper.ModRegistry.GetApi<ISweetRoomsAPI>("ApryllForever.PolyamorySweetRooms");

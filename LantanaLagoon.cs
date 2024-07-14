@@ -127,7 +127,8 @@ namespace PolyamorySweetLove
             Microsoft.Xna.Framework.Rectangle tidePools;
             tidePools = new Microsoft.Xna.Framework.Rectangle(17, 6, 7, 19);
             float chance;
-            chance = 1f;
+            
+            /*chance = 1f;
             while (Game1.random.NextDouble() < (double)chance)
             {
                 string id;
@@ -139,7 +140,7 @@ namespace PolyamorySweetLove
                     this.dropObject(ItemRegistry.Create<Object>(id), position * 64f, Game1.viewport, initialPlacement: true);
                 }
                 chance /= 2f;
-            }
+            }*/
             Microsoft.Xna.Framework.Rectangle seaweedShore;
             seaweedShore = new Microsoft.Xna.Framework.Rectangle(12, 14, 12, 8);
             chance = 0.25f;
@@ -164,7 +165,7 @@ namespace PolyamorySweetLove
           
         }
 	
-		static string NuclearShopDialogue = "Hey they love! what may I do for you today?";
+		static string NuclearShopDialogue = "Hey there love! what may I do for you today?";
 
 		public override bool performAction(string action, Farmer who, Location tileLocation)
 		{

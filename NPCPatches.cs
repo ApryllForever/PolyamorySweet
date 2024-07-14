@@ -250,6 +250,7 @@ namespace PolyamorySweetLove
                 return; 
                 
                 /*
+                
    
 
                 // custom dialogues
@@ -354,8 +355,8 @@ namespace PolyamorySweetLove
                     }
                 }
                 
-                                return;
-                                if (Config.RemoveSpouseOrdinaryDialogue && __instance.Name != Game1.player.spouse && __instance.currentMarriageDialogue.Count > 0)
+                                //return;
+                                if ( __instance.Name != Game1.player.spouse && __instance.currentMarriageDialogue.Count > 0)
                                 {
                                     __instance.CurrentDialogue.Clear();
                                     foreach (MarriageDialogueReference mdr in __instance.currentMarriageDialogue)

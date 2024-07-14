@@ -92,6 +92,9 @@ namespace PolyamorySweetLove
 
             //farmHouse = Game1.RequireLocation<FarmHouse>(Game1.player.homeLocation.Value);
             Point porchspot = farmHouse.getPorchStandingSpot();
+            Point kitchenspot = farmHouse.getKitchenStandingSpot();
+            Point bedspot = farmHouse.getBedSpot();
+            
 
 
             Farmer farmer = farmHouse.owner;
@@ -110,14 +113,16 @@ namespace PolyamorySweetLove
             ShuffleList(ref allSpouses);
 
             List<string> bedSpouses = new List<string>();
-            string kitchenSpouse = null;
-
+            string bedSpouse = null;
 
             List<string> patioSpouses = new List<string>();
             string patioSpouse = null;
 
             List<string> porchSpouses = new List<string>();
             string porchSpouse = null;
+
+            List<string> kitchenSpouses = new List<string>();
+            string kitchenSpouse = null;
 
 
             foreach (NPC spouse in allSpouses)
@@ -133,6 +138,18 @@ namespace PolyamorySweetLove
                     }
                     SMonitor.Log($"{spouse.Name} is not in farm house ({spouse.currentLocation.Name})");
                     continue;
+                }
+
+                if(spouse.TilePoint == kitchenspot)
+                {
+                    kitchenSpouses.Add(spouse.Name);
+                    SMonitor.Log($"{spouse.Name} is in the Kitchen ({spouse.currentLocation.Name})");
+                }
+
+                if(spouse.TilePoint == bedspot)
+                {
+                    bedSpouses.Add(spouse.Name);
+                    SMonitor.Log($"{spouse.Name} is in the Bed ({spouse.currentLocation.Name})");
                 }
 
                 int type = myRand.Next(0, 100);
@@ -158,7 +175,7 @@ namespace PolyamorySweetLove
                 }
                 else if (type < Config.PercentChanceForSpouseInBed + Config.PercentChanceForSpouseInKitchen + Config.PercentChanceForSpouseAtPatio && patioSpouses.Count < 1)
                 {
-                    if (!Game1.isRaining && !Game1.IsWinter && !Game1.shortDayNameFromDayOfSeason(Game1.dayOfMonth).Equals("Sat") && !spouse.Name.Equals("Krobus") && spouse.Schedule == null)
+                    if (!Game1.isRaining && !Game1.IsWinter && !Game1.shortDayNameFromDayOfSeason(Game1.dayOfMonth).Equals("Sat") && !spouse.Name.Equals("Krobus") && spouse.Schedule == null && patioSpouses.Count <=1)
                     {
                         patioSpouses.Add(spouse.Name);
                         SMonitor.Log("made patio spouse: " + spouse.Name);
@@ -202,11 +219,31 @@ namespace PolyamorySweetLove
                 spouse.shouldPlaySpousePatioAnimation.Value = false;
 
                 Vector2 bedPos = GetSpouseBedPosition(farmHouse, spouse.Name);
+                if (bedSpouses.Count > 1 && bedSpouses.Contains(spouse.Name))
+                {
+                    Game1.warpCharacter(spouse, "FarmHouse", getRandomOpenPointInFarmHouse(myRand, 0, 60));
+                    spouse.setTilePosition(farmHouse.getRandomOpenPointInHouse(myRand));
+                    spouse.faceDirection(myRand.Next(0, 4));
+                    SMonitor.Log($"{spouse.Name} spouse random location instead of piled in the bed {spouse.TilePoint}");
+                    
+                    spouse.checkForMarriageDialogue(600, farmHouse);// I CAN SET THIS TO ANYTHING!!! 
+                    bedSpouses.Remove(spouse.Name);
 
+                }
                 if (bedSpouses.Count > 0 && bedSpouses.Contains(spouse.Name) && bedPos != Vector2.Zero)
                 {
                     SMonitor.Log($"putting {spouse.Name} in bed");
                     spouse.position.Value = GetSpouseBedPosition(farmHouse, spouse.Name);
+                }
+
+                if (kitchenSpouses.Count > 1 && kitchenSpouses.Contains(spouse.Name))
+                {
+                    Game1.warpCharacter(spouse, "FarmHouse", getRandomOpenPointInFarmHouse(myRand, 0, 60));
+                    spouse.setTilePosition(farmHouse.getRandomOpenPointInHouse(myRand));
+                    spouse.faceDirection(myRand.Next(0, 4));
+                    SMonitor.Log($"{spouse.Name} spouse random location instead of piled in the Kitchen!!! {spouse.TilePoint}");
+                    spouse.checkForMarriageDialogue(600, farmHouse);// I CAN SET THIS TO ANYTHING!!! 
+                    kitchenSpouses.Remove(spouse.Name);
                 }
 
                 else if (kitchenSpouse == spouse.Name && !IsTileOccupied(farmHouse, farmHouse.getKitchenStandingSpot(), spouse.Name))
