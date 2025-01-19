@@ -85,14 +85,11 @@ namespace PolyamorySweetLove
                 waterAnimationIndex = (waterAnimationIndex + 1) % 10;
                 waterAnimationTimer = 200;
             }
-            if (!isFarm)
+           
             {
                 waterPosition += (float)((Math.Sin((float)time.TotalGameTime.Milliseconds / 1000f) + 1.0) * 0.15000000596046448);
             }
-            else
-            {
-                waterPosition += 0.1f;
-            }
+           
             if (waterPosition >= 64f)
             {
                 waterPosition -= 64f;

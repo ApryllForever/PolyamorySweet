@@ -1,4 +1,6 @@
-﻿using Microsoft.Xna.Framework;
+﻿using HarmonyLib;
+using Microsoft.Xna.Framework;
+using Netcode;
 using SpaceShared.APIs;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
@@ -13,7 +15,6 @@ namespace PolyamorySweetLove
     /// <summary>The mod entry point.</summary>
     public partial class ModEntry
     {
-
         private void GameLoop_GameLaunched(object sender, StardewModdingAPI.Events.GameLaunchedEventArgs e)
         {
             var sc = Helper.ModRegistry.GetApi<ISpaceCoreApi>("spacechase0.SpaceCore");
@@ -21,6 +22,8 @@ namespace PolyamorySweetLove
             sc.RegisterSerializerType(typeof(PolyamoryLocation));
 
             sc.RegisterSerializerType(typeof(LantanaLagoon));
+
+            sc.RegisterSerializerType(typeof(LantanaTemple));
 
 
             // get Generic Mod Config Menu's API (if it's installed)
@@ -136,7 +139,9 @@ namespace PolyamorySweetLove
         }
         public static void GameLoop_SaveLoaded(object sender, SaveLoadedEventArgs e)
         {
-            SetAllNPCsDatable();
+
+
+            SetAllNPCsDatable(); //What the hell have I done here? What is this???
             ResetSpouses(Game1.player);
         }
 

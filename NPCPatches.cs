@@ -379,7 +379,7 @@ namespace PolyamorySweetLove
             
             if (__instance.Age == NPC.child)
             {
-                // The NPC is a child, so we want to ensure it can't accept engagement.
+                // The NPC is a child, so we want to ensure they can't accept engagement.
                 asRoommate = true;
                 
                 Monitor.Log($"{__instance.Name} is a child NPC. Refusing engagement.");
@@ -726,6 +726,9 @@ namespace PolyamorySweetLove
                     {
                         Monitor.Log($"proposal success!");
                         AccessTools.Method(typeof(NPC), "engagementResponse").Invoke(__instance, new object[] { who, true });
+                        //__instance.justEngaged().Value = true;
+                       
+
                         return false;
                     }
                     Game1.drawObjectDialogue(Game1.parseText(Game1.content.LoadString("Strings\\Characters:MovieInvite_NoTheater", __instance.displayName)));
@@ -996,13 +999,15 @@ namespace PolyamorySweetLove
                         return false;
                     }
 
-                    //Proposal Success Code
+                    //Proposal Success Code 
 
                     else
                     {
                         Monitor.Log($"Tried to give pendant to someone marriable");
                         if (!__instance.datable.Value || who.HouseUpgradeLevel >= 1)
                         {
+                            // ModEntry.justEngageinated = true;
+
                             typeof(NPC).GetMethod("engagementResponse", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(__instance, new object[] { who, false });
                             
                             
@@ -1155,13 +1160,16 @@ namespace PolyamorySweetLove
         public static IEnumerable<CodeInstruction> NPC_tryToReceiveActiveObject_Transpiler(IEnumerable<CodeInstruction> instructions)
         {
 
+            //THis fucking thing is likely the patch to change the jealousy to not happen when giving gifts
+
+
             var codes = new List<CodeInstruction>(instructions);
             bool startLooking = false;
             for (int i = 0; i < codes.Count; i++)
             {
                 if (startLooking)
                 {
-                    if (codes[i].opcode == OpCodes.Ldc_I4_S && int.Parse(codes[i].operand.ToString()) < -10)
+                    if (codes[i].opcode == OpCodes.Ldc_I4_S && int.Parse(codes[i].operand.ToString()) < -10) //This finds the -30
                     {
                         Monitor.Log($"got int!");
                         codes[i] = new CodeInstruction(OpCodes.Ldc_I4_S, 10);

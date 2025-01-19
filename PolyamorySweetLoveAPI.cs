@@ -23,5 +23,9 @@ namespace PolyamorySweetLove
         {
             ModEntry.lastPregnantSpouse = Game1.getCharacterFromName(name);
         }
+
+
+
+
     }
 }

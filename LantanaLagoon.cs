@@ -21,6 +21,7 @@ using Object = StardewValley.Object;
 using StardewValley.GameData;
 using StardewValley.Menus;
 using StardewValley.Extensions;
+using System.Security.Cryptography;
 
 namespace PolyamorySweetLove
 {
@@ -116,7 +117,10 @@ namespace PolyamorySweetLove
 				Point offset = new Point(0, 0); 
 				Vector2 vector_offset = new Vector2(offset.X, offset.Y);
 
-				Game1.currentLightSources.Add(new LightSource(4, (new Vector2(19f, 7f) + vector_offset) * 64f, 1f, LightSource.LightContext.None, 0L));}  
+				Game1.currentLightSources.Add(new LightSource("4", 4, (new Vector2(19f, 7f) + vector_offset) * 64f, 1f, LightSource.LightContext.None, 0L));
+            
+            
+            }  
 
         }
 
@@ -161,9 +165,14 @@ namespace PolyamorySweetLove
             {
                 this.spawnObjects();
             }
-       
-          
+            string modId = "Butt";
+            if (Helper.ModRegistry.Get(modId) != null)
+            { }
+        
         }
+
+
+
 	
 		static string NuclearShopDialogue = "Hey there love! what may I do for you today?";
 

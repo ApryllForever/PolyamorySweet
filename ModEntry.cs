@@ -22,6 +22,8 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using xTile;
 using xTile.Dimensions;
+using System.Collections.Specialized;
+
 
 namespace PolyamorySweetLove
 {
@@ -30,7 +32,12 @@ namespace PolyamorySweetLove
     {
 
         public static bool Button = false;
-        public static bool Proposal_Sweet = false;
+        public static bool Proposal_Sweet;
+
+        public static bool justEngageinated
+        {
+            get; set;
+        }
 
 
         public static IMonitor SMonitor;
@@ -48,6 +55,7 @@ namespace PolyamorySweetLove
 
         public static Dictionary<long, Dictionary<string, NPC>> currentSpouses = new Dictionary<long, Dictionary<string, NPC>>();
         public static Dictionary<long, Dictionary<string, NPC>> currentUnofficialSpouses = new Dictionary<long, Dictionary<string, NPC>>();
+        public static SortedDictionary<NPC, int> sortedSpouses = new SortedDictionary<NPC, int>();
 
         /// <summary>The mod entry point, called after the mod is first loaded.</summary>
         /// <param name="helper">Provides simplified APIs for writing mods.</param>
@@ -166,8 +174,8 @@ namespace PolyamorySweetLove
             //This was moved to Kiss
             //
             //harmony.Patch(
-              // original: AccessTools.Method(typeof(NPC), nameof(NPC.checkAction)),
-              // prefix: new HarmonyMethod(typeof(NPCPatches), nameof(NPCPatches.NPC_checkAction_Prefix))
+            // original: AccessTools.Method(typeof(NPC), nameof(NPC.checkAction)),
+            // prefix: new HarmonyMethod(typeof(NPCPatches), nameof(NPCPatches.NPC_checkAction_Prefix))
             //);
 
 
@@ -303,14 +311,14 @@ namespace PolyamorySweetLove
 
             harmony.Patch(
                original: AccessTools.Method(typeof(SocialPage), "drawNPCSlot"),
-               prefix: new HarmonyMethod(typeof(UIPatches), nameof(UIPatches.SocialPage_drawNPCSlot_prefix)),
-               transpiler: new HarmonyMethod(typeof(UIPatches), nameof(UIPatches.SocialPage_drawSlot_transpiler))
+               prefix: new HarmonyMethod(typeof(UIPatches), nameof(UIPatches.SocialPage_drawNPCSlot_prefix))
+            // transpiler: new HarmonyMethod(typeof(UIPatches), nameof(UIPatches.SocialPage_drawSlot_transpiler))
             );
 
-            harmony.Patch(
-               original: AccessTools.Method(typeof(SocialPage), "drawFarmerSlot"),
-               transpiler: new HarmonyMethod(typeof(UIPatches), nameof(UIPatches.SocialPage_drawSlot_transpiler))
-            );
+            //  harmony.Patch(
+            //   original: AccessTools.Method(typeof(SocialPage), "drawFarmerSlot"),
+            //  transpiler: new HarmonyMethod(typeof(UIPatches), nameof(UIPatches.SocialPage_drawSlot_transpiler))
+            //  );
 
             harmony.Patch(
                original: AccessTools.Method(typeof(SocialPage.SocialEntry), nameof(SocialPage.SocialEntry.IsMarriedToAnyone)),
@@ -592,12 +600,12 @@ namespace PolyamorySweetLove
             if (sender != Game1.player)
                 return;
             if (e.Gift.Name.Equals("Mermaid Bouquet"))
-                {
+            {
                 e.Npc.CurrentDialogue.Pop();
 
                 Friendship friendship;
                 Game1.player.friendshipData.TryGetValue(e.Npc.Name, out friendship);
- 
+
                 {
                     SMonitor.Log($"Try give mermaid bouquet to {e.Npc.Name}");
 
@@ -630,14 +638,14 @@ namespace PolyamorySweetLove
                         }
 
                         Game1.drawDialogue(e.Npc);
-                       
+
                     }
                     else
                     {
                         if (friendship?.IsDating() == true)
                         {
                             Game1.drawObjectDialogue(Game1.content.LoadString("Strings\\UI:AlreadyDatingBouquet", e.Npc.displayName));
-                            
+
                         }
                         if (friendship?.IsDivorced() == true)
 
@@ -663,7 +671,7 @@ namespace PolyamorySweetLove
                                 e.Npc.CurrentDialogue.Push(Game1.random.NextBool() ? new Dialogue(e.Npc, "Strings\\StringsFromCSFiles:NPC.cs.3958", false) : new Dialogue(e.Npc, "Strings\\StringsFromCSFiles:NPC.cs.3959", true));
                                 Game1.drawDialogue(e.Npc);
                             }
-                            
+
                         }
                         if (friendship?.Points < Config.MinPointsToDate)
                         {
@@ -676,7 +684,7 @@ namespace PolyamorySweetLove
                                 e.Npc.CurrentDialogue.Push(new Dialogue(e.Npc, "Strings\\StringsFromCSFiles:NPC.cs." + Game1.random.Choose("3960", "3961"), false));
                                 Game1.drawDialogue(e.Npc);
                             }
-                           
+
                         }
 
                         //AcceptBouquet
@@ -706,7 +714,7 @@ namespace PolyamorySweetLove
                         Game1.player.completelyStopAnimatingOrDoingAction();
                         e.Npc.doEmote(20, true);
                         Game1.drawDialogue(e.Npc);
-                        
+
                     }
                 }
             }
@@ -743,7 +751,7 @@ namespace PolyamorySweetLove
                         if ((e.Npc.Dialogue.ContainsKey("RejectMermaidPendant_PlayerWithSomeoneElse")))
                         {
                             e.Npc.setNewDialogue(rejectPlayerAlreadyMarried, false, false);
-                          
+
                         }
 
                         else
@@ -769,7 +777,7 @@ namespace PolyamorySweetLove
                             if (ModEntry.myRand.NextDouble() < 0.5)
                             {
                                 Game1.drawObjectDialogue(Game1.content.LoadString("Strings\\StringsFromCSFiles:NPC.cs.3969", e.Npc.displayName));
-                               
+
                             }
                             e.Npc.CurrentDialogue.Push(new Dialogue(e.Npc, "Strings\\StringsFromCSFiles:NPC.cs." + ((e.Npc.Gender == Gender.Female) ? "3970" : "3971"), false));
                             Game1.drawDialogue(e.Npc);
@@ -794,7 +802,7 @@ namespace PolyamorySweetLove
                             Game1.drawDialogue(e.Npc);
                             Game1.player.changeFriendship(-50, e.Npc);
                             Game1.player.friendshipData[e.Npc.Name].ProposalRejected = true;
-                            
+
                         }
                         if ((e.Npc.Dialogue.ContainsKey("RejectMermaidPendant_Under10Hearts_AskedAgain")))
                         {
@@ -806,7 +814,7 @@ namespace PolyamorySweetLove
                         }
                         Game1.drawDialogue(e.Npc);
                         Game1.player.changeFriendship(-100, e.Npc);
-                       
+
                     }
 
                     else if (e.Npc.datable.Value && Game1.player.friendshipData.ContainsKey(e.Npc.Name) && Game1.player.friendshipData[e.Npc.Name].Points < Config.MinPointsToMarry)
@@ -825,14 +833,14 @@ namespace PolyamorySweetLove
                                 e.Npc.CurrentDialogue.Push(new Dialogue(e.Npc, "Strings\\StringsFromCSFiles:NPC.cs." + Game1.random.Choose("3972", "3973"), false));
                             }
                             Game1.drawDialogue(e.Npc);
-                           Game1.player.changeFriendship(-20, e.Npc);
+                            Game1.player.changeFriendship(-20, e.Npc);
                             Game1.player.friendshipData[e.Npc.Name].ProposalRejected = true;
-                         
+
                         }
                         e.Npc.CurrentDialogue.Push(new Dialogue(e.Npc, "Strings\\StringsFromCSFiles:NPC.cs." + Game1.random.Choose("3974", "3975"), true));
                         Game1.drawDialogue(e.Npc);
-                       Game1.player.changeFriendship(-50, e.Npc);
-                       
+                        Game1.player.changeFriendship(-50, e.Npc);
+
                     }
 
                     //Proposal Success Code
@@ -864,10 +872,10 @@ namespace PolyamorySweetLove
 
             if (e.Gift.Name.Equals("Roomie B Gone"))
             {
-                if(e.Npc.isRoommate())
+                if (e.Npc.isRoommate())
                 {
 
-                   //FriendshipStatus friendshipStatus = new FriendshipStatus();
+                    //FriendshipStatus friendshipStatus = new FriendshipStatus();
 
                     //e.Npc.divorcedFromFarmer = true;
 
@@ -883,7 +891,7 @@ namespace PolyamorySweetLove
                     e.Npc.CurrentDialogue.Clear();
                     e.Npc.CurrentDialogue.Push(new Dialogue(e.Npc, "Strings\\StringsFromCSFiles:NotRoomie", false));
                     Game1.drawDialogue(e.Npc);
-                    
+
                 }
 
 
@@ -1129,57 +1137,67 @@ namespace PolyamorySweetLove
                     Friendship friendship;
                     who.friendshipData.TryGetValue(__instance.Name, out friendship);
 
-                    Game1.changeMusicTrack("silence");
-                    who.spouse = __instance.Name;
 
-                    {
-                        Game1.Multiplayer.globalChatInfoMessage("Engaged", Game1.player.Name, __instance.GetTokenizedDisplayName());
-                    }
 
                     //Friendship friendship = who.friendshipData[base.Name];
-                    friendship.Status = FriendshipStatus.Engaged;
-
-                    WorldDate worldDate = new WorldDate(Game1.Date);
-                    worldDate.TotalDays += 3;
-                    while (!Game1.canHaveWeddingOnDay(worldDate.DayOfMonth, worldDate.Season))
+                    if (friendship != null)
                     {
-                        worldDate.TotalDays++;
+
+                        Game1.changeMusicTrack("silence");
+                        who.spouse = __instance.Name;
+
+                        {
+                            Game1.Multiplayer.globalChatInfoMessage("Engaged", Game1.player.Name, __instance.GetTokenizedDisplayName());
+                        }
+
+                        friendship.Status = FriendshipStatus.Engaged;
+
+                        WorldDate worldDate = new WorldDate(Game1.Date);
+                        worldDate.TotalDays += 3;
+                        while (!Game1.canHaveWeddingOnDay(worldDate.DayOfMonth, worldDate.Season))
+                        {
+                            worldDate.TotalDays++;
+                        }
+
+                        friendship.WeddingDate = worldDate;
+
+                        __instance.CurrentDialogue.Clear();
+
+                        {
+                            Dialogue dialogue2 = StardewValley.Dialogue.TryGetDialogue(__instance, "Data\\EngagementDialogue:" + __instance.Name + "0");
+                            if (dialogue2 != null)
+                            {
+                                __instance.CurrentDialogue.Push(dialogue2);
+                            }
+
+                            dialogue2 = StardewValley.Dialogue.TryGetDialogue(__instance, "Strings\\StringsFromCSFiles:" + __instance.Name + "_Engaged");
+                            if (dialogue2 != null)
+                            {
+                                __instance.CurrentDialogue.Push(dialogue2);
+                            }
+                            else
+                            {
+                                __instance.CurrentDialogue.Push(new Dialogue(__instance, "Strings\\StringsFromCSFiles:NPC.cs.3980"));
+                            }
+                        }
+
+                        Dialogue obj = __instance.CurrentDialogue.Peek();
+                        obj.onFinish = (Action)Delegate.Combine(obj.onFinish, (Action)delegate
+                        {
+                            Game1.changeMusicTrack("none", track_interruptable: true);
+                            GameLocation.HandleMusicChange(null, Game1.player.currentLocation);
+                        });
+
+                        who.changeFriendship(1, __instance);
+                        //who.reduceActiveItemByOne();
+                        who.completelyStopAnimatingOrDoingAction();
+                        Game1.drawDialogue(__instance);
                     }
-
-                    friendship.WeddingDate = worldDate;
-                    
-                    __instance.CurrentDialogue.Clear();
-
+                    else
                     {
-                        Dialogue dialogue2 = StardewValley.Dialogue.TryGetDialogue(__instance, "Data\\EngagementDialogue:" + __instance.Name + "0");
-                        if (dialogue2 != null)
-                        {
-                            __instance.CurrentDialogue.Push(dialogue2);
-                        }
+                        SMonitor.Log($"You must have met the person to start the relationship!", LogLevel.Alert);
 
-                        dialogue2 = StardewValley.Dialogue.TryGetDialogue(__instance, "Strings\\StringsFromCSFiles:" + __instance.Name + "_Engaged");
-                        if (dialogue2 != null)
-                        {
-                            __instance.CurrentDialogue.Push(dialogue2);
-                        }
-                        else
-                        {
-                            __instance.CurrentDialogue.Push(new Dialogue(__instance, "Strings\\StringsFromCSFiles:NPC.cs.3980"));
-                        }
                     }
-
-                    Dialogue obj = __instance.CurrentDialogue.Peek();
-                    obj.onFinish = (Action)Delegate.Combine(obj.onFinish, (Action)delegate
-                    {
-                        Game1.changeMusicTrack("none", track_interruptable: true);
-                        GameLocation.HandleMusicChange(null, Game1.player.currentLocation);
-                    });
-                    
-                    who.changeFriendship(1, __instance);
-                    //who.reduceActiveItemByOne();
-                    who.completelyStopAnimatingOrDoingAction();
-                    Game1.drawDialogue(__instance);
-
                 }
             }
             else
@@ -1232,13 +1250,14 @@ namespace PolyamorySweetLove
             if (e.NewStage == LoadStage.CreatedInitialLocations || e.NewStage == LoadStage.SaveAddedLocations)
             {
                 Game1.locations.Add(new LantanaLagoon(Helper.ModContent));
+                Game1.locations.Add(new LantanaTemple(Helper.ModContent));
             }
 
         }
 
 
-
-
+       
+     
 
 
 

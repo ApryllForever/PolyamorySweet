@@ -91,6 +91,18 @@ namespace PolyamorySweetLove
             //string shakeTimer = Helper.Reflection.GetField<string>(__instance, "shakeTimer").GetValue();
 
             //farmHouse = Game1.RequireLocation<FarmHouse>(Game1.player.homeLocation.Value);
+
+
+
+            //if (SortSpouseOrder == true)
+            {
+                //spousesortigncodehere
+
+
+
+            }
+
+
             Point porchspot = farmHouse.getPorchStandingSpot();
             Point kitchenspot = farmHouse.getKitchenStandingSpot();
             Point bedspot = farmHouse.getBedSpot();
@@ -191,6 +203,15 @@ namespace PolyamorySweetLove
                     continue;
                 SMonitor.Log("placing " + spouse.Name);
 
+                if (patioSpouses.Count > 1 && patioSpouses.Contains(spouse.Name))
+                {
+                    Game1.warpCharacter(spouse, "FarmHouse", getRandomOpenPointInFarmHouse(myRand, 0, 60));
+                    spouse.setTilePosition(farmHouse.getRandomOpenPointInHouse(myRand));
+                    spouse.faceDirection(myRand.Next(0, 4));
+                    SMonitor.Log($"{spouse.Name} spouse random loc {spouse.TilePoint}");
+                    spouse.setSpouseRoomMarriageDialogue();// I CAN SET THIS TO ANYTHING!!!        //setRandomAfternoonMarriageDialogue(Game1.timeOfDay, farmHouse, false);
+                    patioSpouses.Remove(spouse.Name);
+                }
 
                 if (porchSpouses.Count > 1 && porchSpouses.Contains(spouse.Name))
                 {
@@ -549,7 +570,8 @@ namespace PolyamorySweetLove
 
             foreach (string name in f.friendshipData.Keys)
             {
-                if (f.friendshipData[name].IsEngaged())
+                
+                /*if (f.friendshipData[name].IsEngaged())
                 {
                     SMonitor.Log($"{f.Name} is engaged to: {name} {f.friendshipData[name].CountdownToWedding} days until wedding");
                     if (f.friendshipData[name].WeddingDate.TotalDays < new WorldDate(Game1.Date).TotalDays)
@@ -557,12 +579,12 @@ namespace PolyamorySweetLove
                         SMonitor.Log("invalid engagement: " + name);
                         f.friendshipData[name].WeddingDate.TotalDays = new WorldDate(Game1.Date).TotalDays + 1;
                     }
-                    if (f.spouse != name)
-                    {
-                        SMonitor.Log("setting spouse to engagee: " + name);
-                        f.spouse = name;
-                    }
-                }
+                   // if (f.spouse != name)
+                   // {
+                     //   SMonitor.Log("setting spouse to engagee: " + name); Angel of the Morning - post-proposal bug
+                      //  f.spouse = name;
+                   // }
+                }*/
                 if (f.friendshipData[name].IsMarried() && f.spouse != name)
                 {
                     //SMonitor.Log($"{f.Name} is married to: {name}");
@@ -584,6 +606,28 @@ namespace PolyamorySweetLove
         {
             if (!Config.RomanceAllVillagers)
                 return;
+
+            List<string> mojovision = new List<string>();
+
+            mojovision.Add("Mateo");
+
+            mojovision.Add("Hector");
+
+            mojovision.Add("Cirrus");
+
+            mojovision.Add("Dandelion");
+
+            mojovision.Add("Roslin");
+
+            mojovision.Add("Solomon");
+
+            mojovision.Add("Stiles");
+
+
+           
+
+
+
             Farmer f = Game1.player;
             if (f == null)
             {
@@ -592,7 +636,15 @@ namespace PolyamorySweetLove
             foreach (string friend in f.friendshipData.Keys)
             {
                 NPC npc = Game1.getCharacterFromName(friend);
-                if (npc != null && !npc.datable.Value && npc is NPC && !(npc is Child) && (npc.Age == 0 || npc.Age == 1))
+
+
+                if (!mojovision.Contains(friend))
+
+
+
+
+
+                    if (npc != null && !npc.datable.Value && npc is NPC && !(npc is Child) && (npc.Age == 0 || npc.Age == 1) && !mojovision.Contains(friend))
                 {
                     SMonitor.Log($"Making {npc.Name} datable.");
                     npc.datable.Value = true;
@@ -625,5 +677,39 @@ namespace PolyamorySweetLove
                 list[list.Keys.ToArray()[n]] = value;
             }
         }
+
+        public static List<string> ReorderSpouses(List<string> sleepSpouses)
+        {
+            List<string> configSpouses = Config.SpouseOrder.Split(',').Where(s => s.Length > 0).ToList();
+            List<string> spouses = new List<string>();
+            foreach (string s in configSpouses)
+            {
+                if (sleepSpouses.Contains(s))
+                    spouses.Add(s);
+            }
+
+            foreach (string s in sleepSpouses)
+            {
+                if (!spouses.Contains(s))
+                {
+                    spouses.Add(s);
+                    configSpouses.Add(s);
+                }
+            }
+            string configString = string.Join(",", configSpouses);
+            if (configString != Config.SpouseOrder)
+            {
+                Config.SpouseOrder = configString;
+                SHelper.WriteConfig(Config);
+            }
+
+            return spouses;
+        }
+
+
+
+
+
+
     }
 }

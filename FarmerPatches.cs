@@ -155,11 +155,11 @@ namespace PolyamorySweetLove
                     {
                         if (aspouse is null)
                             aspouse = spouse.Key;
-                        if (__instance.friendshipData.TryGetValue(spouse.Key, out var f) && f.IsEngaged())
-                        {
-                            __result = spouse.Key;
-                            break;
-                        }
+                       // if (__instance.friendshipData.TryGetValue(spouse.Key, out var f) && f.IsEngaged())  //Angel of the Morning This is in hopes of fixing the post-proposal house crash
+                        //{
+                         //   __result = spouse.Key;
+                        //    break;
+                       // }
                     }
                     if (__result is null && aspouse is not null)
                     {
@@ -191,11 +191,11 @@ namespace PolyamorySweetLove
                     {
                         if (aspouse is null)
                             aspouse = spouse.Value;
-                        if (__instance.friendshipData[spouse.Key].IsEngaged())
-                        {
-                            __result = spouse.Value;
-                            break;
-                        }
+                       // if (__instance.friendshipData[spouse.Key].IsEngaged()) Angel of the Morning trying to fix post proposal bug
+                       /// {
+                        //    __result = spouse.Value;
+                          //  break;
+                       // }
                     }
                     if (__result is null && aspouse is not null)
                     {

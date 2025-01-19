@@ -20,6 +20,8 @@ namespace PolyamorySweetLove
         public int PercentChanceForSpouseInKitchen { get; set; } = 25;
         public int PercentChanceForSpouseAtPatio { get; set; } = 25;
 
+        public string SpouseOrder { get; set; } = "";
+
         //public bool RemoveSpouseOrdinaryDialogue { get; set; } = false;
     }
 }
