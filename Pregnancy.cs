@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Input;
 using PolyamorySweetLove;
 using StardewModdingAPI;
 using StardewValley;
@@ -21,6 +22,8 @@ namespace PolyamorySweetLove
         {
             if (!Config.EnableMod)
                 return true;
+            Random r = Utility.CreateRandom(Game1.stats.DaysPlayed, Game1.uniqueIDForThisGame / 2, 470124797.0, Game1.player.UniqueMultiplayerID);
+
             SMonitor.Log("picking event");
             if (Game1.weddingToday)
             {
@@ -28,11 +31,35 @@ namespace PolyamorySweetLove
                 return false;
             }
 
+            if (ModEntry.BabyTonight)
+            {
 
+
+                SMonitor.Log("Requesting a baby using Aphrodite Flower!");
+                lastPregnantSpouse = Game1.getCharacterFromName(BabyTonightSpouse);
+                __result= new QuestionEvent(1);
+
+                return false;
+            }
 
             List<NPC> allSpouses = GetSpouses(Game1.player, true).Values.ToList();
 
             ShuffleList(ref allSpouses);
+
+            List<string> farmerlist = new List<string>();
+            List<string> farmerSpouse = new List<string>();
+
+            foreach (Farmer allFarmer in Game1.getAllFarmers())
+            {
+
+                farmerlist.Add(allFarmer.Name);
+                if (allSpouses.ToString().Contains(allFarmer.Name))
+                {
+                    farmerSpouse.Add(allFarmer.Name);
+                }
+         
+
+            }
 
             foreach (NPC spouse in allSpouses)
             {
@@ -49,10 +76,39 @@ namespace PolyamorySweetLove
                 {
                     lastPregnantSpouse = null;
                     lastBirthingSpouse = spouse;
-                    __result = new BirthingEvent();
+
+
+
+                    if (spouse.IsVillager)
+                    {
+                        __result = new BirthingEvent();
+                    }
+
+                    //if (spouse.IsVillager)
+                    if (!farmerlist.Contains(spouse.Name))
+                    {
+                        __result = new BirthingEvent();
+                    }
+                    else 
+                        { 
+
+                    long spouseID = Game1.player.team.GetSpouse(Game1.player.UniqueMultiplayerID).Value;
+                    if (Game1.otherFarmers.ContainsKey(spouseID))
+                        {
+                        __result = new PlayerCoupleBirthingEvent();
+                        }
+                    }
+
+
                     return false;
                 }
             }
+
+
+
+
+          
+
 
             if (plannedParenthoodAPI is not null && plannedParenthoodAPI.GetPartnerTonight() is not null)
             {
@@ -76,15 +132,58 @@ namespace PolyamorySweetLove
                 List<Child> kids = f.getChildren();
                 int maxChildren = childrenAPI == null ? Config.MaxChildren : childrenAPI.GetMaxChildren();
                 FarmHouse fh = Utility.getHomeOfFarmer(f);
-                bool can = spouse.daysAfterLastBirth <= 0 && fh.cribStyle.Value > 0 && fh.upgradeLevel >= 2 && friendship.DaysUntilBirthing < 0 && heartsWithSpouse >= 10 && friendship.DaysMarried >= 7 && (kids.Count < maxChildren);
-                SMonitor.Log($"Checking ability to get pregnant: {spouse.Name} {can}:{(fh.cribStyle.Value > 0 ? $" no crib" : "")}{(Utility.getHomeOfFarmer(f).upgradeLevel < 2 ? $" house level too low {Utility.getHomeOfFarmer(f).upgradeLevel}" : "")}{(friendship.DaysMarried < 7 ? $", not married long enough {friendship.DaysMarried}" : "")}{(friendship.DaysUntilBirthing >= 0 ? $", already pregnant (gives birth in: {friendship.DaysUntilBirthing})" : "")}");
-                if (can && Game1.player.currentLocation == Game1.getLocationFromName(Game1.player.homeLocation.Value) && myRand.NextDouble() < 0.05)
+
+                // bool can = spouse.daysAfterLastBirth <= 0 && fh.cribStyle.Value > 0 && fh.upgradeLevel >= 2 && friendship.DaysUntilBirthing < 0 && heartsWithSpouse >= 10 && friendship.DaysMarried >= 7 && (kids.Count < maxChildren);
+                //this was the old preg check
+                long spouseID = 0;
+                if (Game1.IsMultiplayer)
                 {
-                    SMonitor.Log("Requesting a baby!");
-                    lastPregnantSpouse = spouse;
-                    __result = new QuestionEvent(1);
-                    return false;
+                 spouseID =   Game1.player.team.GetSpouse(Game1.player.UniqueMultiplayerID).Value;
                 }
+
+                bool? flag = spouse?.canGetPregnant();
+
+                //if(Config.GayPregnancies) Classic example of me forgetting what I was doing halfway through...
+               // {
+                ///    flag = true;
+               // }
+
+                SMonitor.Log($"Checking ability to get pregnant: {spouse.Name} {flag}:{(fh.cribStyle.Value > 0 ? $" no crib" : "")}{(Utility.getHomeOfFarmer(f).upgradeLevel < 2 ? $" house level too low {Utility.getHomeOfFarmer(f).upgradeLevel}" : "")}{(friendship.DaysMarried < 7 ? $", not married long enough {friendship.DaysMarried}" : "")}{(friendship.DaysUntilBirthing >= 0 ? $", already pregnant (gives birth in: {friendship.DaysUntilBirthing})" : "")}");
+
+                if (!farmerlist.Contains(spouse.Name)) {
+                    if (flag.HasValue && flag.GetValueOrDefault() && Game1.player.currentLocation == Game1.getLocationFromName(Game1.player.homeLocation.Value) && r.NextDouble() < Config.PercentChanceForBirthingQuestion && GameStateQuery.CheckConditions(spouse.GetData()?.SpouseWantsChildren))
+                    {
+                        SMonitor.Log("Requesting a baby!");
+                        lastPregnantSpouse = spouse;
+                        __result= new QuestionEvent(1);
+                        return false;
+                    }
+                }
+               
+                else
+
+                  if (Game1.otherFarmers.TryGetValue(spouseID, out var farmereposa))
+                {
+
+                    Farmer eposa = farmereposa;
+                    if (eposa.currentLocation == Game1.player.currentLocation && (spouse.currentLocation == Game1.getLocationFromName(eposa.homeLocation.Value) || eposa.currentLocation == Game1.getLocationFromName(Game1.player.homeLocation.Value)) && Utility.playersCanGetPregnantHere(spouse.currentLocation as FarmHouse))
+                    {
+                        SMonitor.Log("Requesting player to get pregnant!");
+
+                        __result = new QuestionEvent(3);
+                        return false;
+                    }
+                }
+
+    //pre 1.3 way
+                //SMonitor.Log($"Checking ability to get pregnant: {spouse.Name} {flag}:{(fh.cribStyle.Value > 0 ? $" no crib" : "")}{(Utility.getHomeOfFarmer(f).upgradeLevel < 2 ? $" house level too low {Utility.getHomeOfFarmer(f).upgradeLevel}" : "")}{(friendship.DaysMarried < 7 ? $", not married long enough {friendship.DaysMarried}" : "")}{(friendship.DaysUntilBirthing >= 0 ? $", already pregnant (gives birth in: {friendship.DaysUntilBirthing})" : "")}");
+               // if (can && Game1.player.currentLocation == Game1.getLocationFromName(Game1.player.homeLocation.Value) && myRand.NextDouble() < 0.05)
+               // {
+                //    SMonitor.Log("Requesting a baby!");
+                 //   lastPregnantSpouse = spouse;
+                  //  __result = new QuestionEvent(1);
+                  //  return false;
+               // }
             }
             return true;
         }
@@ -98,6 +197,7 @@ namespace PolyamorySweetLove
             {
                 if (lastPregnantSpouse == null)
                 {
+                    SMonitor.Log("PSL - lastPregnantSpouse was null, we are somehow screwed, returning to vanilla question event.");
                     __result = true;
                     return false;
                 }
@@ -107,10 +207,16 @@ namespace PolyamorySweetLove
                     new Response("Not", Game1.content.LoadString("Strings\\Events:HaveBabyAnswer_No"))
                 };
 
-                if (!lastPregnantSpouse.isAdoptionSpouse() || Config.GayPregnancies)
+                if ( Config.GayPregnancies)
                 {
                     Game1.currentLocation.createQuestionDialogue(Game1.content.LoadString("Strings\\Events:HavePlayerBabyQuestion", lastPregnantSpouse.Name), answers, new GameLocation.afterQuestionBehavior(answerPregnancyQuestion), lastPregnantSpouse);
                 }
+
+                else if (!lastPregnantSpouse.isAdoptionSpouse())
+                {
+                    Game1.currentLocation.createQuestionDialogue(Game1.content.LoadString("Strings\\Events:HavePlayerBabyQuestion", lastPregnantSpouse.Name), answers, new GameLocation.afterQuestionBehavior(answerPregnancyQuestion), lastPregnantSpouse);
+                }
+
                 else
                 {
                     Game1.currentLocation.createQuestionDialogue(Game1.content.LoadString("Strings\\Events:HavePlayerBabyQuestion_Adoption", lastPregnantSpouse.Name), answers, new GameLocation.afterQuestionBehavior(answerPregnancyQuestion), lastPregnantSpouse);
@@ -125,7 +231,18 @@ namespace PolyamorySweetLove
         public static bool BirthingEvent_tickUpdate_Prefix(GameTime time, BirthingEvent __instance, ref bool __result, ref int ___timer, string ___soundName, ref bool ___playedSound, string ___message, ref bool ___naming, bool ___getBabyName, bool ___isMale, string ___babyName)
         {
             if (!Config.EnableMod || !___getBabyName)
+            {
+                SMonitor.Log("PSL - ___getBabyName was false!");
                 return true;
+            }
+
+            if (Config.ImpregnatingMother)
+            {
+                if (Game1.player.Gender == Gender.Female)
+                {
+                    ___isMale = false;
+                }
+            }
 
             Game1.player.CanMove = false;
             ___timer += time.ElapsedGameTime.Milliseconds;
@@ -133,7 +250,9 @@ namespace PolyamorySweetLove
 
             if (!___naming)
             {
-                Game1.activeClickableMenu = new NamingMenu(new NamingMenu.doneNamingBehavior(__instance.returnBabyName), Game1.content.LoadString(___isMale ? "Strings\\Events:BabyNamingTitle_Male" : "Strings\\Events:BabyNamingTitle_Female"), "");
+                //Game1.activeClickableMenu = new NamingMenu(new NamingMenu.doneNamingBehavior(__instance.returnBabyName), Game1.content.LoadString(___isMale ? "Strings\\Events:BabyNamingTitle_Male" : "Strings\\Events:BabyNamingTitle_Female"), "");
+                Game1.activeClickableMenu = new NamingMenu(__instance.returnBabyName, Game1.content.LoadString(___isMale ? "Strings\\Events:BabyNamingTitle_Male" : "Strings\\Events:BabyNamingTitle_Female"), "");
+
                 ___naming = true;
             }
             if (___babyName != null && ___babyName != "" && ___babyName.Length > 0)
@@ -151,6 +270,12 @@ namespace PolyamorySweetLove
                     {
                         while (enumerator.MoveNext())
                         {
+                            if (Game1.characterData.ContainsKey(newBabyName))
+                            {
+                                newBabyName += " ";
+                                collision_found = true;
+                                break;
+                            }
                             if (enumerator.Current.Name.Equals(newBabyName))
                             {
                                 newBabyName += " ";
@@ -161,6 +286,8 @@ namespace PolyamorySweetLove
                     }
                 }
                 while (collision_found);
+
+           
                 Child baby = new Child(newBabyName, ___isMale, isDarkSkinned, Game1.player)
                 {
                     Age = 0,
@@ -216,6 +343,8 @@ namespace PolyamorySweetLove
             __result = false;
             return false;
         }
+
+
         public static bool BirthingEvent_setUp_Prefix(ref bool ___isMale, ref string ___message, ref bool __result)
         {
             if (!Config.EnableMod)
@@ -227,18 +356,52 @@ namespace PolyamorySweetLove
             }
             NPC spouse = lastBirthingSpouse;
             Game1.player.CanMove = false;
-            ___isMale = myRand.NextDouble() > 0.5f;
-            if (spouse.isAdoptionSpouse())
+
+            if (Config.ImpregnatingMother)
+            {
+                if (Game1.player.Gender == Gender.Female)
+                {
+                    ___isMale = false;
+
+
+
+                }
+                else
+                {
+                    ___isMale = myRand.NextDouble() > Config.PercentChanceForBirthSex;
+                }
+            }
+            else
+            {
+                ___isMale = myRand.NextDouble() > Config.PercentChanceForBirthSex;
+            }
+
+            if (Config.GayPregnancies)
+            {
+                ___message = Game1.content.LoadString("Strings\\Events:BirthMessage_SpouseMother", Lexicon.getGenderedChildTerm(___isMale));
+                SMonitor.Log("PSL - Wife is giving birth, lesbian pregnancy!");
+            }
+
+
+            else if (spouse.isAdoptionSpouse() && !Config.GayPregnancies)
             {
                 ___message = Game1.content.LoadString("Strings\\Events:BirthMessage_Adoption", Lexicon.getGenderedChildTerm(___isMale));
+                SMonitor.Log("PSL - Adopted Baby is here!");
             }
             else if (spouse.Gender == 0)
             {
                 ___message = Game1.content.LoadString("Strings\\Events:BirthMessage_PlayerMother", Lexicon.getGenderedChildTerm(___isMale));
+                SMonitor.Log("PSL - Player is giving birth!");
+            }
+            else if (Config.ImpregnatingFemmeNPC)
+            {
+                ___message = Game1.content.LoadString("Strings\\Events:BirthMessage_PlayerMother", Lexicon.getGenderedChildTerm(___isMale));
+                SMonitor.Log("PSL - Player is giving birth!");
             }
             else
             {
                 ___message = Game1.content.LoadString("Strings\\Events:BirthMessage_SpouseMother", Lexicon.getGenderedChildTerm(___isMale), spouse.displayName);
+                SMonitor.Log("PSL - Wife is giving birth!");
             }
             __result = false;
             return false;
@@ -251,7 +414,9 @@ namespace PolyamorySweetLove
                 WorldDate birthingDate = new WorldDate(Game1.Date);
                 birthingDate.TotalDays += 14;
                 who.friendshipData[lastPregnantSpouse.Name].NextBirthingDate = birthingDate;
-                lastPregnantSpouse.isAdoptionSpouse();
+                SMonitor.Log("PSL - The pregnancy has begun!!!");
+
+                //lastPregnantSpouse.isAdoptionSpouse(); why in the fucking hell is this line even here??? It seems to be fucking everything up in regards to sapphic pregnancies.
             }
         }
     }

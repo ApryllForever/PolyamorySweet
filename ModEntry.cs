@@ -23,6 +23,7 @@ using System.Text.RegularExpressions;
 using xTile;
 using xTile.Dimensions;
 using System.Collections.Specialized;
+using StardewValley.Objects;
 
 
 namespace PolyamorySweetLove
@@ -31,8 +32,13 @@ namespace PolyamorySweetLove
     public partial class ModEntry : Mod
     {
 
+
+        public static bool BabyTonight = false;
+        public static string BabyTonightSpouse = String.Empty;
+
         public static bool Button = false;
         public static bool Proposal_Sweet;
+        public static bool AphroditeFlowerGiven = false;
 
         public static bool justEngageinated
         {
@@ -350,7 +356,11 @@ namespace PolyamorySweetLove
                original: AccessTools.GetDeclaredMethods(typeof(Game1)).Where(m => m.Name == "getCharacterFromName" && m.ReturnType == typeof(NPC)).First(),
                prefix: new HarmonyMethod(typeof(Game1Patches), nameof(Game1Patches.getCharacterFromName_Prefix))
             );
-
+            //Child Patch
+            harmony.Patch(
+             original: AccessTools.DeclaredMethod(typeof(Child), nameof(Child.checkAction)),
+             prefix: new HarmonyMethod(typeof(ModEntry), nameof(ModEntry.Child_checkAction_Prefix))
+          );
         }
 
         public override object GetApi()
@@ -1205,6 +1215,156 @@ namespace PolyamorySweetLove
                 SMonitor.Log($"The entity you are to force is not marriagable. You cannot do this!!!", LogLevel.Alert);
 
             }
+
+        }
+
+        private static bool Child_checkAction_Prefix(Farmer who, GameLocation l, Child __instance)
+        {
+            { 
+
+            
+                if (who.ActiveObject != null && who.ActiveObject.Name.Equals("Lilith Token")  && ModEntry.Button)
+            {
+
+                    FarmHouse homeOfFarmer = Utility.getHomeOfFarmer(Game1.player);
+                  //  if (!homeOfFarmer.characters.Contains(__instance))
+                   // {
+
+                     //   SMonitor.Log("PSL - Attempting and failing to give Lilith Token. That child is not in the list of that farmer's home.");
+                      //  return true;
+
+                    //}
+
+
+
+                    Game1.player.reduceActiveItemByOne();
+                Game1.player.completelyStopAnimatingOrDoingAction();
+
+                {
+                    Game1.Multiplayer.broadcastSprites(Game1.currentLocation, new TemporaryAnimatedSprite("LooseSprites\\Cursors", new Microsoft.Xna.Framework.Rectangle(536, 1945, 8, 8), new Vector2(156f, 388f), flipped: false, 0f, Color.White)
+                    {
+                        interval = 50f,
+                        totalNumberOfLoops = 99999,
+                        animationLength = 7,
+                        layerDepth = 0.038500004f,
+                        scale = 4f
+                    });
+                    for (int i = 0; i < 20; i++)
+                    {
+                        Game1.Multiplayer.broadcastSprites(Game1.currentLocation, new TemporaryAnimatedSprite("LooseSprites\\Cursors", new Microsoft.Xna.Framework.Rectangle(372, 1956, 10, 10), new Vector2(2f, 6f) * 64f + new Vector2(Game1.random.Next(-32, 64), Game1.random.Next(16)), flipped: false, 0.002f, Color.LightGray)
+                        {
+                            alpha = 0.75f,
+                            motion = new Vector2(1f, -0.5f),
+                            acceleration = new Vector2(-0.002f, 0f),
+                            interval = 99999f,
+                            layerDepth = 0.0384f + (float)Game1.random.Next(100) / 10000f,
+                            scale = 3f,
+                            scaleChange = 0.01f,
+                            rotationChange = (float)Game1.random.Next(-5, 6) * (float)Math.PI / 256f,
+                            delayBeforeAnimationStart = i * 25
+                        });
+                    }
+                    Game1.playSound("fireball");
+                    Game1.Multiplayer.broadcastSprites(Game1.currentLocation, new TemporaryAnimatedSprite("LooseSprites\\Cursors", new Microsoft.Xna.Framework.Rectangle(388, 1894, 24, 22), 100f, 6, 9999, new Vector2(2f, 5f) * 64f, flicker: false, flipped: true, 1f, 0f, Color.White, 4f, 0f, 0f, 0f)
+                    {
+                        motion = new Vector2(4f, -2f)
+                    });
+                    if (Game1.player.getChildrenCount() > 1)
+                    {
+                        Game1.Multiplayer.broadcastSprites(Game1.currentLocation, new TemporaryAnimatedSprite("LooseSprites\\Cursors", new Microsoft.Xna.Framework.Rectangle(388, 1894, 24, 22), 100f, 6, 9999, new Vector2(2f, 5f) * 64f, flicker: false, flipped: true, 1f, 0f, Color.White, 4f, 0f, 0f, 0f)
+                        {
+                            motion = new Vector2(4f, -1.5f),
+                            delayBeforeAnimationStart = 50
+                        });
+                    }
+                    string message = "";
+
+                    message += Game1.content.LoadString("Strings\\Locations:WitchHut_Goodbye", __instance.getName());
+
+                    Game1.showGlobalMessage(message);
+                    // Game1.player.getRidOfChildren();
+                  
+                       // homeOfFarmer.GetChildBed((int)__instance.Gender)?.mutex.ReleaseLock();
+                       // homeOfFarmer.characters.Remove(__instance);
+
+                        FarmHouse farmhouse = Utility.getHomeOfFarmer(who);
+
+                        /*
+                                                for (int i = farmhouse.characters.Count - 1; i >= 0; i--)
+                                                {
+                                                    if (farmhouse.characters[i] == __instance)
+                                                    {
+                                                        farmhouse.GetChildBed((int)__instance.Gender)?.mutex.ReleaseLock();
+                                                        if (__instance.hat.Value != null)
+                                                        {
+                                                            Hat hat = __instance.hat.Value;
+                                                            __instance.hat.Value = null;
+                                                            who.team.returnedDonations.Add(hat);
+                                                           who.team.newLostAndFoundItems.Value = true;
+                                                        }
+                                                        farmhouse.characters.RemoveAt(i);
+                                                        Game1.stats.Increment("childrenTurnedToDoves");
+                                                    }
+                                                }
+                        */
+
+                        //farmhouse.characters.Remove(__instance);
+
+                        DelayedAction.functionAfterDelay(delegate
+                        {
+
+                            NukaKid(__instance, who);
+
+                        }, 60
+
+                        );
+
+
+
+                        
+
+
+
+                        List<NPC> allSpouses = ModEntry.GetSpouses(Game1.player, true).Values.ToList();
+                        foreach (NPC wifie in allSpouses)
+                        {
+                            Game1.player.changeFriendship(-1337, wifie);
+                        }
+
+                        Game1.stats.Increment("childrenTurnedToDoves");
+
+                    Game1.Multiplayer.globalChatInfoMessage("EvilShrine", Game1.player.Name);
+                }
+                return false;
+
+            }
+            return true;
+
+            }
+
+
+        }
+
+        public static void NukaKid(Child child, Farmer who)
+        {
+            FarmHouse farmhouse = Utility.getHomeOfFarmer(who);
+            for (int i = farmhouse.characters.Count - 1; i >= 0; i--)
+            {
+                if (farmhouse.characters[i] == child)
+                {
+                    farmhouse.GetChildBed((int)child.Gender)?.mutex.ReleaseLock();
+                    if (child.hat.Value != null)
+                    {
+                        Hat hat = child.hat.Value;
+                        child.hat.Value = null;
+                        who.team.returnedDonations.Add(hat);
+                        who.team.newLostAndFoundItems.Value = true;
+                    }
+                    farmhouse.characters.RemoveAt(i);
+                    Game1.stats.Increment("childrenTurnedToDoves");
+                }
+            }
+
 
         }
 

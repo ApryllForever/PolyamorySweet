@@ -149,6 +149,9 @@ namespace PolyamorySweetLove
         {
             ResetDivorces();
             ResetSpouses(Game1.player);
+            BabyTonight = false;
+            BabyTonightSpouse = String.Empty;
+            AphroditeFlowerGiven = false;
 
 
             foreach (GameLocation location in Game1.locations)

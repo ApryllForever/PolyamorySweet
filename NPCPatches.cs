@@ -9,6 +9,7 @@ using StardewValley.Characters;
 using StardewValley.Extensions;
 using StardewValley.Locations;
 using StardewValley.Network;
+using StardewValley.Objects;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -727,7 +728,7 @@ namespace PolyamorySweetLove
                         Monitor.Log($"proposal success!");
                         AccessTools.Method(typeof(NPC), "engagementResponse").Invoke(__instance, new object[] { who, true });
                         //__instance.justEngaged().Value = true;
-                       
+
 
                         return false;
                     }
@@ -816,8 +817,8 @@ namespace PolyamorySweetLove
                                     Game1.drawDialogue(__instance);
                                 }
                                 return false;
-                                
-                        }
+
+                            }
                         if (friendship?.Points < Config.MinPointsToDate / 2f)
                         {
                             if ((__instance.Dialogue.ContainsKey("RejectBouquet_VeryLowHearts")))
@@ -827,8 +828,8 @@ namespace PolyamorySweetLove
                             else
                             {
                                 __instance.CurrentDialogue.Push(Game1.random.NextBool() ? new Dialogue(__instance, "Strings\\StringsFromCSFiles:NPC.cs.3958", false) : new Dialogue(__instance, "Strings\\StringsFromCSFiles:NPC.cs.3959", true));
-                            Game1.drawDialogue(__instance);
-                             }
+                                Game1.drawDialogue(__instance);
+                            }
                             return false;
                         }
                         if (friendship?.Points < Config.MinPointsToDate)
@@ -856,7 +857,7 @@ namespace PolyamorySweetLove
                                     __instance.displayName
                             });
                         }
-                       
+
 
                         if ((__instance.Dialogue.ContainsKey("AcceptBouquet")))
                         {
@@ -914,7 +915,7 @@ namespace PolyamorySweetLove
                             Game1.drawDialogue(__instance);
                             return false;
                         }
-                           
+
                     }
 
 
@@ -936,7 +937,7 @@ namespace PolyamorySweetLove
                             }
                             __instance.CurrentDialogue.Push(new Dialogue(__instance, "Strings\\StringsFromCSFiles:NPC.cs." + ((__instance.Gender == Gender.Female) ? "3970" : "3971"), false));
                             Game1.drawDialogue(__instance);
-                           
+
                         }
                         return false;
                     }
@@ -1009,17 +1010,17 @@ namespace PolyamorySweetLove
                             // ModEntry.justEngageinated = true;
 
                             typeof(NPC).GetMethod("engagementResponse", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(__instance, new object[] { who, false });
-                            
-                            
-                            
-                            
-                            
-                            
-                            
-                            
-                            
-                            
-                            
+
+
+
+
+
+
+
+
+
+
+
                             return false;
                         }
                         Monitor.Log($"Can't marry");
@@ -1118,6 +1119,7 @@ namespace PolyamorySweetLove
                                         __instance.doEmote(20, true);
                                         __instance.CurrentDialogue.Push(new Dialogue(__instance, "Strings\\StringsFromCSFiles:AineFlower_spouse", false));
                                         Game1.drawDialogue(__instance);
+                                        friendship.GiftsToday--;
                                     }
 
                                 }
@@ -1139,20 +1141,128 @@ namespace PolyamorySweetLove
                                 Game1.player.changeFriendship(100, __instance);
                                 __instance.CurrentDialogue.Push(new Dialogue(__instance, "Strings\\StringsFromCSFiles:AineFlower_accept", false));
                                 Game1.drawDialogue(__instance);
+                                friendship.GiftsToday--;
 
-                               // Game1.drawObjectDialogue(Game1.content.LoadString("Strings\\StringsFromCSFiles:AineFlower_accept", __instance.displayName));
-                       
+                                // Game1.drawObjectDialogue(Game1.content.LoadString("Strings\\StringsFromCSFiles:AineFlower_accept", __instance.displayName));
+
                             }
                             return false;
                         }
-                        return true;
+
                     }
-                    
+
                 }
-            }
+                else if (who.ActiveItem.Name.Equals("Lilith Token") )
+                {
+                    if (__instance is Child)
+                    {
+
+
+                    }
+                     if ( ModEntry.Button)
+                    {
+
+                        if (__instance.Name.Equals("Abigail"))
+                        {
+                            Game1.player.reduceActiveItemByOne();
+                            Game1.player.completelyStopAnimatingOrDoingAction();
+                            __instance.doEmote(60, true);
+                            Game1.player.changeFriendship(137, __instance);
+                            __instance.CurrentDialogue.Push(new Dialogue(__instance, "Strings\\StringsFromCSFiles:LilithToken_accept", false));
+                            Game1.drawDialogue(__instance);
+                            friendship.GiftsToday--;
+
+                        }
+                        else if (__instance.modData.ContainsKey("LilithToken"))
+                        {
+                            Game1.player.reduceActiveItemByOne();
+                            Game1.player.completelyStopAnimatingOrDoingAction();
+                            __instance.doEmote(60, true);
+                            Game1.player.changeFriendship(137, __instance);
+                            __instance.CurrentDialogue.Push(new Dialogue(__instance, "Strings\\StringsFromCSFiles:LilithToken_accept", false));
+                            Game1.drawDialogue(__instance);
+                            friendship.GiftsToday--;
+
+                        }
+                        else
+                        {
+                            Game1.player.completelyStopAnimatingOrDoingAction();
+                            Game1.player.changeFriendship(-137, __instance);
+                            __instance.doEmote(36, true);
+                            __instance.CurrentDialogue.Push(new Dialogue(__instance, "Strings\\StringsFromCSFiles:LilithToken_reject", false));
+                            Game1.drawDialogue(__instance);
+                        }
+                    }
+                    return false;
+
+
+
+                }
+
+                else if (who.ActiveItem.Name.Equals("Aphrodite Flower") && ModEntry.Button)
+                {
+                    if (ModEntry.AphroditeFlowerGiven == false)
+                    {
+                        if (!__instance.IsVillager)
+                        {
+
+                            Game1.drawObjectDialogue(Game1.content.LoadString("Strings\\StringsFromCSFiles:AphroditeFlower_notVillager", __instance.displayName));
+                            return false;
+
+                        }
+                        if (__instance.IsVillager)
+                        {
+                            if (ModEntry.GetSpouses(Game1.player, true).ContainsKey(__instance.Name))
+                            {
+                                Game1.player.changeFriendship(25, __instance);
+                                Game1.player.reduceActiveItemByOne();
+                                Game1.player.completelyStopAnimatingOrDoingAction();
+                                __instance.doEmote(20, true);
+                                __instance.CurrentDialogue.Push(new Dialogue(__instance, "Strings\\StringsFromCSFiles:AphroditeFlower_accept", false));
+                                Game1.drawDialogue(__instance);
+                                friendship.GiftsToday--;
+
+                                ModEntry.BabyTonight = true;
+                                ModEntry.BabyTonightSpouse = __instance.Name;
+                                ModEntry.AphroditeFlowerGiven = true;
+
+                                return false;
+                            }
+                            else
+                            {
+                                Game1.player.changeFriendship(-25, __instance);
+                                Game1.player.completelyStopAnimatingOrDoingAction();
+                                __instance.doEmote(36, true);
+                                __instance.CurrentDialogue.Push(new Dialogue(__instance, "Strings\\StringsFromCSFiles:AphroditeFlower_reject", false));
+                                Game1.drawDialogue(__instance);
+                                return false;
+                            }
+
+                        }
+                        else
+                        {
+                            Game1.player.changeFriendship(-25, __instance);
+                            Game1.player.completelyStopAnimatingOrDoingAction();
+                            __instance.doEmote(36, true);
+                            __instance.CurrentDialogue.Push(new Dialogue(__instance, "Strings\\StringsFromCSFiles:AphroditeFlower_reject", false));
+                            Game1.drawDialogue(__instance);
+                            return false;
+                        }
+                    }
+                    else
+                    {
+                        Game1.drawObjectDialogue(Game1.content.LoadString("Strings\\StringsFromCSFiles:AphroditeFlower_alreadyGiven", ModEntry.BabyTonightSpouse));
+                        return false;
+                    }
+
+                }
+
+
+
+                }
             catch (Exception ex)
             {
-                Monitor.Log($"Failed in {nameof(NPC_tryToReceiveActiveObject_Prefix)}:\n{ex}", LogLevel.Error);
+                Monitor.Log($"PSL - Failed in {nameof(NPC_tryToReceiveActiveObject_Prefix)}:\n{ex}", LogLevel.Error);
             }
             return true;
         }

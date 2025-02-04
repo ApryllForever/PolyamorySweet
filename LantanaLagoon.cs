@@ -165,9 +165,9 @@ namespace PolyamorySweetLove
             {
                 this.spawnObjects();
             }
-            string modId = "Butt";
-            if (Helper.ModRegistry.Get(modId) != null)
-            { }
+           // string modId = "Butt";
+            //if (Helper.ModRegistry.Get(modId) != null)
+           // { }
         
         }
 

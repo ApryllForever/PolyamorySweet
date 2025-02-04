@@ -13,12 +13,17 @@ namespace PolyamorySweetLove
         public bool RoommateRomance { get; set; } = false;
         public bool RomanceAllVillagers { get; set; } = false;
         public bool GayPregnancies { get; set; } = true;
+        public bool ImpregnatingMother { get; set; } = true;
+        public bool ImpregnatingFemmeNPC { get; set; } = false;
         public int MaxChildren { get; set; } = 2;
         public bool ShowParentNames { get; set; } = true;
         public string SpouseSleepOrder { get; set; } = "";
         public int PercentChanceForSpouseInBed { get; set; } = 25;
         public int PercentChanceForSpouseInKitchen { get; set; } = 25;
         public int PercentChanceForSpouseAtPatio { get; set; } = 25;
+        public float PercentChanceForBirthingQuestion { get; set; } = 0.05f;
+        public float PercentChanceForBirthSex { get; set; } = 0.6f;
+
 
         public string SpouseOrder { get; set; } = "";
 
