@@ -1328,7 +1328,7 @@ namespace PolyamorySweetLove
                         List<NPC> allSpouses = ModEntry.GetSpouses(Game1.player, true).Values.ToList();
                         foreach (NPC wifie in allSpouses)
                         {
-                            Game1.player.changeFriendship(-1337, wifie);
+                            Game1.player.changeFriendship(-1337, wifie); 
                         }
 
                         Game1.stats.Increment("childrenTurnedToDoves");

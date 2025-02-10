@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
+using Netcode;
 using PolyamorySweetLove;
 using StardewModdingAPI;
 using StardewValley;
@@ -17,7 +18,7 @@ namespace PolyamorySweetLove
 {
     public partial class ModEntry
     {
-
+        public static NetFarmerPairDictionary<Friendship, NetRef<Friendship>> friendshipData = new NetFarmerPairDictionary<Friendship, NetRef<Friendship>>();
         public static bool Utility_pickPersonalFarmEvent_Prefix(ref FarmEvent __result)
         {
             if (!Config.EnableMod)
@@ -136,9 +137,21 @@ namespace PolyamorySweetLove
                 // bool can = spouse.daysAfterLastBirth <= 0 && fh.cribStyle.Value > 0 && fh.upgradeLevel >= 2 && friendship.DaysUntilBirthing < 0 && heartsWithSpouse >= 10 && friendship.DaysMarried >= 7 && (kids.Count < maxChildren);
                 //this was the old preg check
                 long spouseID = 0;
+                
                 if (Game1.IsMultiplayer)
                 {
-                 spouseID =   Game1.player.team.GetSpouse(Game1.player.UniqueMultiplayerID).Value;
+                    // foreach (KeyValuePair<FarmerPair, Friendship> pair in friendshipData.Pairs)
+                    //{
+                    //    if (pair.Key.Contains(farmer) && (pair.Value.IsEngaged() || pair.Value.IsMarried()))
+                    //   {
+                    //spouseID = pair.Key.GetOther(farmer);
+                    //  }
+                    // }
+
+                    if (Game1.player.team.GetSpouse(Game1.player.UniqueMultiplayerID) != null)
+                    {
+                        spouseID =   Game1.player.team.GetSpouse(Game1.player.UniqueMultiplayerID).Value;
+                    }
                 }
 
                 bool? flag = spouse?.canGetPregnant();
@@ -150,7 +163,8 @@ namespace PolyamorySweetLove
 
                 SMonitor.Log($"Checking ability to get pregnant: {spouse.Name} {flag}:{(fh.cribStyle.Value > 0 ? $" no crib" : "")}{(Utility.getHomeOfFarmer(f).upgradeLevel < 2 ? $" house level too low {Utility.getHomeOfFarmer(f).upgradeLevel}" : "")}{(friendship.DaysMarried < 7 ? $", not married long enough {friendship.DaysMarried}" : "")}{(friendship.DaysUntilBirthing >= 0 ? $", already pregnant (gives birth in: {friendship.DaysUntilBirthing})" : "")}");
 
-                if (!farmerlist.Contains(spouse.Name)) {
+                if (!farmerlist.Contains(spouse.Name))
+                {
                     if (flag.HasValue && flag.GetValueOrDefault() && Game1.player.currentLocation == Game1.getLocationFromName(Game1.player.homeLocation.Value) && r.NextDouble() < Config.PercentChanceForBirthingQuestion && GameStateQuery.CheckConditions(spouse.GetData()?.SpouseWantsChildren))
                     {
                         SMonitor.Log("Requesting a baby!");
@@ -159,22 +173,24 @@ namespace PolyamorySweetLove
                         return false;
                     }
                 }
-               
-                else
 
-                  if (Game1.otherFarmers.TryGetValue(spouseID, out var farmereposa))
+                else
+                if (spouseID != 0)
                 {
 
-                    Farmer eposa = farmereposa;
-                    if (eposa.currentLocation == Game1.player.currentLocation && (spouse.currentLocation == Game1.getLocationFromName(eposa.homeLocation.Value) || eposa.currentLocation == Game1.getLocationFromName(Game1.player.homeLocation.Value)) && Utility.playersCanGetPregnantHere(spouse.currentLocation as FarmHouse))
+                    if (Game1.otherFarmers.TryGetValue(spouseID, out var farmereposa))
                     {
-                        SMonitor.Log("Requesting player to get pregnant!");
 
-                        __result = new QuestionEvent(3);
-                        return false;
+                        Farmer eposa = farmereposa;
+                        if (eposa.currentLocation == Game1.player.currentLocation && (spouse.currentLocation == Game1.getLocationFromName(eposa.homeLocation.Value) || eposa.currentLocation == Game1.getLocationFromName(Game1.player.homeLocation.Value)) && Utility.playersCanGetPregnantHere(spouse.currentLocation as FarmHouse))
+                        {
+                            SMonitor.Log("Requesting player to get pregnant!");
+
+                            __result = new QuestionEvent(3);
+                            return false;
+                        }
                     }
                 }
-
     //pre 1.3 way
                 //SMonitor.Log($"Checking ability to get pregnant: {spouse.Name} {flag}:{(fh.cribStyle.Value > 0 ? $" no crib" : "")}{(Utility.getHomeOfFarmer(f).upgradeLevel < 2 ? $" house level too low {Utility.getHomeOfFarmer(f).upgradeLevel}" : "")}{(friendship.DaysMarried < 7 ? $", not married long enough {friendship.DaysMarried}" : "")}{(friendship.DaysUntilBirthing >= 0 ? $", already pregnant (gives birth in: {friendship.DaysUntilBirthing})" : "")}");
                // if (can && Game1.player.currentLocation == Game1.getLocationFromName(Game1.player.homeLocation.Value) && myRand.NextDouble() < 0.05)

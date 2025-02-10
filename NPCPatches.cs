@@ -7,6 +7,7 @@ using StardewValley;
 using StardewValley.Audio;
 using StardewValley.Characters;
 using StardewValley.Extensions;
+using StardewValley.GameData.Characters;
 using StardewValley.Locations;
 using StardewValley.Network;
 using StardewValley.Objects;
@@ -1203,7 +1204,7 @@ namespace PolyamorySweetLove
                 {
                     if (ModEntry.AphroditeFlowerGiven == false)
                     {
-                        if (!__instance.IsVillager)
+                        if (__instance.Age == (int)NpcAge.Child)
                         {
 
                             Game1.drawObjectDialogue(Game1.content.LoadString("Strings\\StringsFromCSFiles:AphroditeFlower_notVillager", __instance.displayName));

@@ -129,7 +129,47 @@ namespace PolyamorySweetLove
                 max: 100
             );
 
-            LoadModApis();
+            configMenu.AddNumberOption(
+              mod: ModManifest,
+              name: () => "Percent Chance For Pregnancy Question (0.0 - 1)",
+              getValue: () => Config.PercentChanceForBirthingQuestion,
+              setValue: value => Config.PercentChanceForBirthingQuestion = value,
+               tooltip: () => "Sets the chance for a birthing question at night. 1 is 100 percent."
+          );
+
+            configMenu.AddNumberOption(
+            mod: ModManifest,
+            name: () => "Percent Chance For Birth Sex to be a Girl (0.0 - 1)",
+            getValue: () => Config.PercentChanceForBirthSex,
+            setValue: value => Config.PercentChanceForBirthSex = value,
+             tooltip: () => "Sets whether the next baby will be a girl. Default is 0.6, a round number reflecting population norms."
+        );
+
+
+            configMenu.AddBoolOption(
+                mod: ModManifest,
+                name: () => "Impregnating Mother",
+                getValue: () => Config.ImpregnatingMother,
+                setValue: value => Config.ImpregnatingMother = value,
+                tooltip: () => "Allows a female farmer to impregnate her wife. Must be set to false if Impregnating Femme NPC is set to true."
+            );
+
+            configMenu.AddBoolOption(
+               mod: ModManifest,
+               name: () => "Impregnating Femme NPC",
+               getValue: () => Config.ImpregnatingFemmeNPC,
+               setValue: value => Config.ImpregnatingFemmeNPC = value,
+               tooltip: () => "Allows a female Farmer to get impregnated by her wife. Must be set to false if Impregnating Mother is set to true."
+           );
+
+
+
+
+
+
+            
+
+        LoadModApis();
         }
 
         private void GameLoop_ReturnedToTitle(object sender, StardewModdingAPI.Events.ReturnedToTitleEventArgs e)
