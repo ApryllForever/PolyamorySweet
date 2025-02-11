@@ -7,6 +7,7 @@ using StardewValley;
 using StardewValley.BellsAndWhistles;
 using StardewValley.Characters;
 using StardewValley.Events;
+using StardewValley.Extensions;
 using StardewValley.Locations;
 using StardewValley.Menus;
 using System;
@@ -166,6 +167,7 @@ namespace PolyamorySweetLove
                 if (!farmerlist.Contains(spouse.Name))
                 {
                     if (flag.HasValue && flag.GetValueOrDefault() && Game1.player.currentLocation == Game1.getLocationFromName(Game1.player.homeLocation.Value) && r.NextDouble() < Config.PercentChanceForBirthingQuestion && GameStateQuery.CheckConditions(spouse.GetData()?.SpouseWantsChildren))
+                    //if (flag.HasValue && flag.GetValueOrDefault() && Game1.player.currentLocation == Game1.getLocationFromName(Game1.player.homeLocation.Value) && r.NextDouble() < Config.PercentChanceForBirthingQuestion && GameStateQuery.CheckConditions(spouse.GetData()?.SpouseWantsChildren))
                     {
                         SMonitor.Log("Requesting a baby!");
                         lastPregnantSpouse = spouse;
@@ -273,88 +275,133 @@ namespace PolyamorySweetLove
             }
             if (___babyName != null && ___babyName != "" && ___babyName.Length > 0)
             {
-                double chance = (lastBirthingSpouse.Name.Equals("Maru") || lastBirthingSpouse.Name.Equals("Krobus")) ? 0.5 : 0.0;
-                chance += (Game1.player.hasDarkSkin() ? 0.5 : 0.0);
-                bool isDarkSkinned = new Random((int)Game1.uniqueIDForThisGame + (int)Game1.stats.DaysPlayed).NextDouble() < chance;
-                string newBabyName = ___babyName;
-                List<NPC> all_characters = Utility.getAllCharacters();
-                bool collision_found = false;
-                do
+                if (lastBirthingSpouse != null)
                 {
-                    collision_found = false;
-                    using (List<NPC>.Enumerator enumerator = all_characters.GetEnumerator())
+
+                }
+
+                try
+                {
+
+                    SMonitor.Log("PSL - Setting up the new baby!");
+
+                    bool isDarkSkinned;
+
+                    if (!Game1.IsMultiplayer)
                     {
-                        while (enumerator.MoveNext())
+                        //double chance = (lastBirthingSpouse.Name.Equals("Maru") || lastBirthingSpouse.Name.Equals("Krobus")) ? 0.5 : 0.0;
+                        //chance += (Game1.player.hasDarkSkin() ? 0.5 : 0.0);
+                        //isDarkSkinned = new Random((int)Game1.uniqueIDForThisGame + (int)Game1.stats.DaysPlayed).NextDouble() < chance;
+                        if (lastBirthingSpouse != null)
                         {
-                            if (Game1.characterData.ContainsKey(newBabyName))
+                            double chance = (lastBirthingSpouse.hasDarkSkin() ? 0.5 : 0.0) + (Game1.player.hasDarkSkin() ? 0.5 : 0.0);
+                            isDarkSkinned = Utility.CreateRandom(Game1.uniqueIDForThisGame, Game1.stats.DaysPlayed).NextBool(chance);
+                        }
+                        else
+                        {
+                            NPC spouse = Game1.player.getSpouse();
+                            double chance = (spouse.hasDarkSkin() ? 0.5 : 0.0) + (Game1.player.hasDarkSkin() ? 0.5 : 0.0);
+                            isDarkSkinned = Utility.CreateRandom(Game1.uniqueIDForThisGame, Game1.stats.DaysPlayed).NextBool(chance);
+
+                        }
+
+                    }
+
+                    else
+                    {
+                        NPC spouse = Game1.player.getSpouse();
+                        double chance = (Game1.player.hasDarkSkin()? 0.5 : 0.0);
+                        chance += (spouse.hasDarkSkin() ? 0.5 : 0.0);
+
+                        isDarkSkinned = new Random((int)Game1.uniqueIDForThisGame + (int)Game1.stats.DaysPlayed).NextDouble() < chance;
+                    }
+
+
+                    string newBabyName = ___babyName;
+                    List<NPC> all_characters = Utility.getAllCharacters();
+                    bool collision_found = false;
+                    do
+                    {
+                        collision_found = false;
+                        using (List<NPC>.Enumerator enumerator = all_characters.GetEnumerator())
+                        {
+                            while (enumerator.MoveNext())
                             {
-                                newBabyName += " ";
-                                collision_found = true;
-                                break;
-                            }
-                            if (enumerator.Current.Name.Equals(newBabyName))
-                            {
-                                newBabyName += " ";
-                                collision_found = true;
-                                break;
+                                if (Game1.characterData.ContainsKey(newBabyName))
+                                {
+                                    newBabyName += " ";
+                                    collision_found = true;
+                                    break;
+                                }
+                                if (enumerator.Current.Name.Equals(newBabyName))
+                                {
+                                    newBabyName += " ";
+                                    collision_found = true;
+                                    break;
+                                }
                             }
                         }
                     }
-                }
-                while (collision_found);
+                    while (collision_found);
 
-           
-                Child baby = new Child(newBabyName, ___isMale, isDarkSkinned, Game1.player)
-                {
-                    Age = 0,
-                    Position = new Vector2(16f, 4f) * 64f + new Vector2(0f + myRand.Next(-64, 48), -24f + myRand.Next(-24, 24)),
-                };
-                baby.modData["ApryllForever.PolyamorySweetLove/OtherParent"] = lastBirthingSpouse.displayName;
 
-                Utility.getHomeOfFarmer(Game1.player).characters.Add(baby);
-                Game1.playSound("smallSelect");
-                Game1.getCharacterFromName(lastBirthingSpouse.Name).daysAfterLastBirth = 5;
-                Game1.player.friendshipData[lastBirthingSpouse.Name].NextBirthingDate = null;
-                if (Game1.player.getChildrenCount() == 2)
-                {
-                    Game1.getCharacterFromName(lastBirthingSpouse.Name).shouldSayMarriageDialogue.Value = true;
-                    Game1.getCharacterFromName(lastBirthingSpouse.Name).currentMarriageDialogue.Insert(0, new MarriageDialogueReference("Data\\ExtraDialogue", "NewChild_SecondChild" + myRand.Next(1, 3), true, new string[0]));
-                    Game1.getSteamAchievement("Achievement_FullHouse");
-                }
-                else if (lastBirthingSpouse.isAdoptionSpouse() && !Config.GayPregnancies)
-                {
-                    Game1.getCharacterFromName(lastBirthingSpouse.Name).currentMarriageDialogue.Insert(0, new MarriageDialogueReference("Data\\ExtraDialogue", "NewChild_Adoption", true, new string[]
+                    Child baby = new Child(newBabyName, ___isMale, isDarkSkinned, Game1.player)
                     {
+                        Age = 0,
+                        Position = new Vector2(16f, 4f) * 64f + new Vector2(0f + myRand.Next(-64, 48), -24f + myRand.Next(-24, 24)),
+                    };
+                    baby.modData["ApryllForever.PolyamorySweetLove/OtherParent"] = lastBirthingSpouse.displayName;
+
+                    Utility.getHomeOfFarmer(Game1.player).characters.Add(baby);
+                    Game1.playSound("smallSelect");
+                    Game1.getCharacterFromName(lastBirthingSpouse.Name).daysAfterLastBirth = 5;
+                    Game1.player.friendshipData[lastBirthingSpouse.Name].NextBirthingDate = null;
+                    if (Game1.player.getChildrenCount() == 2)
+                    {
+                        Game1.getCharacterFromName(lastBirthingSpouse.Name).shouldSayMarriageDialogue.Value = true;
+                        Game1.getCharacterFromName(lastBirthingSpouse.Name).currentMarriageDialogue.Insert(0, new MarriageDialogueReference("Data\\ExtraDialogue", "NewChild_SecondChild" + myRand.Next(1, 3), true, new string[0]));
+                        Game1.getSteamAchievement("Achievement_FullHouse");
+                    }
+                    else if (lastBirthingSpouse.isAdoptionSpouse() && !Config.GayPregnancies)
+                    {
+                        Game1.getCharacterFromName(lastBirthingSpouse.Name).currentMarriageDialogue.Insert(0, new MarriageDialogueReference("Data\\ExtraDialogue", "NewChild_Adoption", true, new string[]
+                        {
                         ___babyName
-                    }));
-                }
-                else
-                {
-                    Game1.getCharacterFromName(lastBirthingSpouse.Name).currentMarriageDialogue.Insert(0, new MarriageDialogueReference("Data\\ExtraDialogue", "NewChild_FirstChild", true, new string[]
+                        }));
+                    }
+                    else
                     {
+                        Game1.getCharacterFromName(lastBirthingSpouse.Name).currentMarriageDialogue.Insert(0, new MarriageDialogueReference("Data\\ExtraDialogue", "NewChild_FirstChild", true, new string[]
+                        {
                         ___babyName
-                    }));
-                }
-                Game1.morningQueue.Enqueue(delegate
-                {
-                    mp.globalChatInfoMessage("Baby", new string[]
+                        }));
+                    }
+                    Game1.morningQueue.Enqueue(delegate
                     {
+                        mp.globalChatInfoMessage("Baby", new string[]
+                        {
                         Lexicon.capitalize(Game1.player.Name),
                         Game1.player.spouse,
                         Lexicon.getGenderedChildTerm(___isMale),
                         Lexicon.getPronoun(___isMale),
                         baby.displayName
+                        });
                     });
-                });
-                if (Game1.keyboardDispatcher != null)
-                {
-                    Game1.keyboardDispatcher.Subscriber = null;
+                    if (Game1.keyboardDispatcher != null)
+                    {
+                        Game1.keyboardDispatcher.Subscriber = null;
+                    }
+                    Game1.player.Position = Utility.PointToVector2(Utility.getHomeOfFarmer(Game1.player).getBedSpot()) * 64f;
+                    Game1.globalFadeToClear(null, 0.02f);
+                    lastBirthingSpouse = null;
+                    __result = true;
+                    return false;
                 }
-                Game1.player.Position = Utility.PointToVector2(Utility.getHomeOfFarmer(Game1.player).getBedSpot()) * 64f;
-                Game1.globalFadeToClear(null, 0.02f);
-                lastBirthingSpouse = null;
-                __result = true;
-                return false;
+                catch
+                {
+
+                    return true;
+                }
             }
             __result = false;
             return false;
@@ -392,9 +439,15 @@ namespace PolyamorySweetLove
                 ___isMale = myRand.NextDouble() > Config.PercentChanceForBirthSex;
             }
 
-            if (Config.GayPregnancies)
+            if (Config.ImpregnatingFemmeNPC)
             {
-                ___message = Game1.content.LoadString("Strings\\Events:BirthMessage_SpouseMother", Lexicon.getGenderedChildTerm(___isMale));
+                ___message = Game1.content.LoadString("Strings\\Events:BirthMessage_PlayerMother", Lexicon.getGenderedChildTerm(___isMale), Game1.player.displayName);
+                SMonitor.Log("PSL - Player is giving birth! Impregnating Femme NPC");
+            }
+
+            else if (Config.GayPregnancies )
+            {
+                ___message = Game1.content.LoadString("Strings\\Events:BirthMessage_SpouseMother", Lexicon.getGenderedChildTerm(___isMale), spouse.displayName);
                 SMonitor.Log("PSL - Wife is giving birth, lesbian pregnancy!");
             }
 
@@ -409,11 +462,7 @@ namespace PolyamorySweetLove
                 ___message = Game1.content.LoadString("Strings\\Events:BirthMessage_PlayerMother", Lexicon.getGenderedChildTerm(___isMale));
                 SMonitor.Log("PSL - Player is giving birth!");
             }
-            else if (Config.ImpregnatingFemmeNPC)
-            {
-                ___message = Game1.content.LoadString("Strings\\Events:BirthMessage_PlayerMother", Lexicon.getGenderedChildTerm(___isMale));
-                SMonitor.Log("PSL - Player is giving birth!");
-            }
+
             else
             {
                 ___message = Game1.content.LoadString("Strings\\Events:BirthMessage_SpouseMother", Lexicon.getGenderedChildTerm(___isMale), spouse.displayName);
