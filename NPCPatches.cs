@@ -241,8 +241,25 @@ namespace PolyamorySweetLove
             }
         }
 
+        /*
+        public static bool NPC_marriageDuties_Prefix()
+        {
+            if(!Config.EnableMod)
+            {
+                return true;
+            }
+            return true;
+        } */
+
+
         public static void NPC_marriageDuties_Postfix(NPC __instance)
         {
+
+
+
+
+
+
             try
             {
                 if (ModEntry.tempOfficialSpouse == __instance)
@@ -251,127 +268,10 @@ namespace PolyamorySweetLove
                 }
                 return; 
                 
-                /*
-                
-   
-
-                // custom dialogues
-
-
-                // dialogues
-
-                if (__instance.currentMarriageDialogue is null || __instance.currentMarriageDialogue.Count == 0)
-                    return;
-
-                bool gotDialogue = false;
-
-                for (int i = 0; i < __instance.currentMarriageDialogue.Count; i++)
-                {
-                    MarriageDialogueReference mdr = __instance.currentMarriageDialogue[i];
-
-                    if (mdr.DialogueFile == "Strings\\StringsFromCSFiles")
-                    {
-                        foreach (string[] array in csMarriageDialoguesChoose)
-                        {
-                            string key = array[ModEntry.myRand.Next(0, array.Length)];
-                            if (array.Contains(key))
-                            {
-                                Dictionary<string, string> marriageDialogues = null;
-                                try
-                                {
-                                    marriageDialogues = ModEntry.SHelper.GameContent.Load<Dictionary<string, string>>("Characters\\Dialogue\\MarriageDialogue" + __instance.Name);
-                                }
-                                catch (Exception)
-                                {
-                                }
-                                MarriageDialogueReference mdrn;
-                                if (marriageDialogues != null && marriageDialogues.ContainsKey(key))
-                                {
-                                    mdrn = new MarriageDialogueReference("Characters\\Dialogue\\MarriageDialogue" + __instance.Name, key, mdr.IsGendered, mdr.Substitutions.ToArray());
-                                }
-                                else
-                                {
-                                    mdrn = new MarriageDialogueReference("Characters\\Dialogue\\MarriageDialogue" + __instance.Name, key, mdr.IsGendered, mdr.Substitutions.ToArray());
-                                }
-                                if (mdrn != null)
-                                {
-                                    __instance.currentMarriageDialogue[i] = mdrn;
-                                }
-                                gotDialogue = true;
-                                break;
-                            }
-                        }
-                        if (!gotDialogue)
-                        {
-                            if (csMarriageDialoguesReplace.Contains(mdr.DialogueKey))
-                            {
-                                Dictionary<string, string> marriageDialogues = null;
-                                try
-                                {
-                                    marriageDialogues = ModEntry.SHelper.GameContent.Load<Dictionary<string, string>>("Characters\\Dialogue\\MarriageDialogue" + __instance.Name);
-                                }
-                                catch (Exception)
-                                {
-                                }
-                                if (marriageDialogues != null && marriageDialogues.ContainsKey(mdr.DialogueKey))
-                                {
-                                    MarriageDialogueReference mdrn = new MarriageDialogueReference("Characters\\Dialogue\\MarriageDialogue" + __instance.Name, mdr.DialogueKey, mdr.IsGendered, mdr.Substitutions.ToArray());
-
-                                    if (mdrn != null)
-                                    {
-                                        __instance.currentMarriageDialogue[i] = mdrn;
-                                    }
-                                    break;
-                                }
-
-                            }
-                        }
-
-                    }
-                    else if (mdr.DialogueFile == "MarriageDialogue")
-                    {
-                        foreach (string[] array in csMarriageDialoguesChoose)
-                        {
-                            string key = array[ModEntry.myRand.Next(0, array.Length)];
-                            if (array.Contains(key))
-                            {
-                                Dictionary<string, string> marriageDialogues = null;
-                                try
-                                {
-                                    marriageDialogues = ModEntry.SHelper.GameContent.Load<Dictionary<string, string>>("Characters\\Dialogue\\MarriageDialogue" + __instance.Name);
-                                }
-                                catch (Exception)
-                                {
-                                }
-                                if (marriageDialogues != null && marriageDialogues.ContainsKey(key))
-                                {
-                                    MarriageDialogueReference mdrn = new MarriageDialogueReference("Characters\\Dialogue\\MarriageDialogue" + __instance.Name, key, mdr.IsGendered, mdr.Substitutions.ToArray());
-                                    if (mdrn != null)
-                                    {
-                                        __instance.currentMarriageDialogue[i] = mdrn;
-                                    }
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                }
-                
-                                //return;
-                                if ( __instance.Name != Game1.player.spouse && __instance.currentMarriageDialogue.Count > 0)
-                                {
-                                    __instance.CurrentDialogue.Clear();
-                                    foreach (MarriageDialogueReference mdr in __instance.currentMarriageDialogue)
-                                    {
-                                        __instance.CurrentDialogue.Push(mdr.GetDialogue(__instance));
-                                        __instance.currentMarriageDialogue.Clear();
-                                    }
-                                }
-                */
             }
             catch (Exception ex)
             {
-                Monitor.Log($"Failed in {nameof(NPC_marriageDuties_Postfix)}:\n{ex}", LogLevel.Error);
+                Monitor.Log($"Failed in fucking with temp spouse setting in {nameof(NPC_marriageDuties_Postfix)}:\n{ex}", LogLevel.Error);
             }
         }
 
@@ -381,8 +281,8 @@ namespace PolyamorySweetLove
             
             if (__instance.Age == NPC.child)
             {
-                // The NPC is a child, so we want to ensure they can't accept engagement.
-                asRoommate = true;
+            
+                asRoommate = true; // Child occurs as a roommate
                 
                 Monitor.Log($"{__instance.Name} is a child NPC. Refusing engagement.");
                 

@@ -192,6 +192,8 @@ namespace PolyamorySweetLove
             BabyTonight = false;
             BabyTonightSpouse = String.Empty;
             AphroditeFlowerGiven = false;
+            PatioPlacement = false;
+            PorchPlacement = false;
 
 
             foreach (GameLocation location in Game1.locations)

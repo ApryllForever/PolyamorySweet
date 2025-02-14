@@ -40,6 +40,10 @@ namespace PolyamorySweetLove
         public static bool Proposal_Sweet;
         public static bool AphroditeFlowerGiven = false;
 
+        public static bool PatioPlacement = false;
+        public static bool PorchPlacement = false;
+
+
         public static bool justEngageinated
         {
             get; set;
