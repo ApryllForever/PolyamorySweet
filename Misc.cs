@@ -1327,7 +1327,7 @@ namespace PolyamorySweetLove
                             spouse.setTilePosition((int)f.tileLocation.X, (int)f.tileLocation.Y + 1);
                             spouse.faceDirection(0);
                             spouse.currentMarriageDialogue.Clear();
-                            spouse.addMarriageDialogue("Strings\\StringsFromCSFiles", "NPC.cs.4498", true);
+                            spouse.addMarriageDialogue("Strings\\StringsFromCSFiles", "NPC.cs.4498", true); //"*sigh*... sometimes I miss my old life.$s",
                             return;
                         }
                     }
@@ -1366,13 +1366,31 @@ namespace PolyamorySweetLove
             if (force || NPC.checkTileOccupancyForSpouse(currentLocation, spouse.Tile, spouse.Name))
             {
                 FarmHouse farmHouse = Game1.RequireLocation<FarmHouse>(Game1.player.homeLocation.Value);
-                Game1.warpCharacter(spouse, "FarmHouse", farmHouse.getSpouseBedSpot(spouse.Name));
+
+
+                Game1.warpCharacter(spouse, "FarmHouse", ModEntry.GetSpouseBedPosition(farmHouse, spouse.Name));  //Using my method for bed position
+
+
                 spouse.faceDirection(1);
                 spouse.currentMarriageDialogue.Clear();
                 spouse.currentMarriageDialogue.Add(backToBedMessage);
                 spouse.shouldSayMarriageDialogue.Value = true;
                 return true;
             }
+            else
+            {
+
+                FarmHouse farmHouse = Game1.RequireLocation<FarmHouse>(Game1.player.homeLocation.Value);
+                Game1.warpCharacter(spouse, "FarmHouse", farmHouse.getSpouseBedSpot(spouse.Name));
+                spouse.faceDirection(1);
+                spouse.currentMarriageDialogue.Clear();
+                spouse.currentMarriageDialogue.Add(backToBedMessage);
+                spouse.shouldSayMarriageDialogue.Value = true;
+                return true;
+
+
+            }
+
 
             return false;
         }
