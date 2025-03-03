@@ -144,7 +144,8 @@ namespace PolyamorySweetLove
 
                 if (!farmHouse.Equals(spouse.currentLocation))
                 {
-                    Game1.warpCharacter(spouse, "FarmHouse", getRandomOpenPointInFarmHouse(myRand, 0, 60));
+                    Point position = farmHouse.getRandomOpenPointInHouse(myRand);
+                    Game1.warpCharacter(spouse, farmHouse, new Vector2(position.X, position.Y));
                     spouse.faceDirection(myRand.Next(0, 4));
                     SMonitor.Log("PSL - Warping NPC from where ever to Random Open Place for begin placement - " + spouse.Name);
                 }
