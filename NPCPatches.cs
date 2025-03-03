@@ -613,7 +613,7 @@ namespace PolyamorySweetLove
         }
           */
 
-        public static bool NPC_tryToReceiveActiveObject_Prefix(NPC __instance, ref Farmer who, Dictionary<string, string> ___dialogue, ref string __state)
+        public static bool NPC_tryToReceiveActiveObject_Prefix(NPC __instance, ref Farmer who, bool probe, Dictionary<string, string> ___dialogue, ref bool __result, ref string __state)
         {
             try
             {
@@ -636,7 +636,7 @@ namespace PolyamorySweetLove
                     Game1.drawObjectDialogue(Game1.parseText(Game1.content.LoadString("Strings\\Characters:MovieInvite_NoTheater", __instance.displayName)));
                     return false;
                 }
-                else if (who.ActiveObject.ParentSheetIndex == 808 && __instance.Name.Equals("Krobus") && ModEntry.Button)
+                else if (who.ActiveObject.ParentSheetIndex == 808 && __instance.Name.Equals("Krobus") && !probe)
                 {
                     if (who.getFriendshipHeartLevelForNPC(__instance.Name) >= 10 && who.HouseUpgradeLevel >= 1)
                     {
@@ -644,7 +644,7 @@ namespace PolyamorySweetLove
                         return false;
                     }
                 }
-                else if (who.ActiveObject.ParentSheetIndex == 458 && ModEntry.Button)
+                else if (who.ActiveObject.ParentSheetIndex == 458 && !probe)
                 {
                     Monitor.Log($"Try give bouquet to {__instance.Name}");
 
@@ -777,7 +777,7 @@ namespace PolyamorySweetLove
                         return false;
                     }
                 }
-                else if (who.ActiveObject.ParentSheetIndex == 460 && ModEntry.Button)
+                else if (who.ActiveObject.ParentSheetIndex == 460 && !probe)
                 {
                     //RejectMermaidPendant_Divorced
                     //RejectMermaidPendant_NeedHouseUpgrade
@@ -935,7 +935,7 @@ namespace PolyamorySweetLove
                         return false;
                     }
                 }
-                else if (who.ActiveObject.ParentSheetIndex == 809 && !who.ActiveObject.bigCraftable.Value && ModEntry.Button)
+                else if (who.ActiveObject.ParentSheetIndex == 809 && !who.ActiveObject.bigCraftable.Value && !probe)
                 {
 
                     Monitor.Log($"Tried to give movie ticket to {__instance.Name}");
@@ -983,9 +983,9 @@ namespace PolyamorySweetLove
                     return true;
                 }
 
-                else if (who.ActiveItem.Name.Equals("Áine Flower") && ModEntry.Button)
+                else if (who.ActiveItem.Name.Equals("Áine Flower") && !probe)
                 {
-                    //if (ModEntry.Button == true)
+                    //if (!probe)
                     {
 
 
@@ -1060,7 +1060,7 @@ namespace PolyamorySweetLove
 
 
                     }
-                     if ( ModEntry.Button)
+                     if ( !probe)
                     {
 
                         if (__instance.Name.Equals("Abigail"))
@@ -1100,7 +1100,7 @@ namespace PolyamorySweetLove
 
                 }
 
-                else if (who.ActiveItem.Name.Equals("Aphrodite Flower") && ModEntry.Button)
+                else if (who.ActiveItem.Name.Equals("Aphrodite Flower") && !probe)
                 {
                     if (ModEntry.AphroditeFlowerGiven == false)
                     {
