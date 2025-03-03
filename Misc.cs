@@ -771,7 +771,7 @@ namespace PolyamorySweetLove
                 {
                     Game1.warpCharacter(spouse, farmer.homeLocation.Value, farmHouse.getSpouseBedSpot(spouse.Name));
                     SMonitor.Log("PSL - Warping "+spouse.Name+"to farmhouse because NPC was someother strange place.");
-                    spouse.modData.Add("SpouseNeedsPlaced", "");
+                    spouse.modData["SpouseNeedsPlaced"] = "";
                 }
 
                 //GenericDialogue
