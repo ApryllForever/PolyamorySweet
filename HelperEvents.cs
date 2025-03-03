@@ -196,15 +196,16 @@ namespace PolyamorySweetLove
             PorchPlacement = false;
 
 
-            foreach (GameLocation location in Game1.locations)
-            {
-                if (ReferenceEquals(location.GetType(), typeof(FarmHouse)))
-                {
-                    PlaceSpousesInFarmhouse(location as FarmHouse);
-                }
-            }
             if (Game1.IsMasterGame)
             {
+                foreach (GameLocation location in GetAllLocations())
+                {
+                    if (location is FarmHouse fh)
+                    {
+                        PlaceSpousesInFarmhouse(fh);
+                    }
+                }
+
                 Game1.getFarm().addSpouseOutdoorArea(Game1.player.spouse == null ? "" : Game1.player.spouse);
                 farmHelperSpouse = GetRandomSpouse(Game1.MasterPlayer);
             }
@@ -224,12 +225,11 @@ namespace PolyamorySweetLove
             if (!Config.EnableMod)
                 return;
 
-            foreach (GameLocation location in Game1.locations)
+            foreach (GameLocation location in GetAllLocations())
             {
 
-                if (location is FarmHouse)
+                if (location is FarmHouse fh)
                 {
-                    FarmHouse fh = location as FarmHouse;
                     if (fh.owner == null)
                         continue;
 

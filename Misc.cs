@@ -1395,6 +1395,28 @@ namespace PolyamorySweetLove
             return false;
         }
 
+        /// <summary>
+        /// Get all locations including buildable locations (ie. Cabins)
+        /// </summary>
+        public static IList<GameLocation> GetAllLocations()
+        {
+            IList<GameLocation> locations = new List<GameLocation>(Game1.locations);
+            foreach (GameLocation location in Game1.locations)
+            {
+                if (location.IsBuildableLocation())
+                {
+                    foreach (Building building in location.buildings)
+                    {
+                        if (building.indoors.Value != null)
+                        {
+                            locations.Add(building.indoors.Value);
+                        }
+                    }
+                }
+            }
+            return locations;
+        }
+
 
     }
 }
