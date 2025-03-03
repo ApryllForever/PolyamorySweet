@@ -613,7 +613,7 @@ namespace PolyamorySweetLove
         }
           */
 
-        public static bool NPC_tryToReceiveActiveObject_Prefix(NPC __instance, ref Farmer who, Dictionary<string, string> ___dialogue)
+        public static bool NPC_tryToReceiveActiveObject_Prefix(NPC __instance, ref Farmer who, Dictionary<string, string> ___dialogue, ref string __state)
         {
             try
             {
@@ -1165,7 +1165,37 @@ namespace PolyamorySweetLove
             {
                 Monitor.Log($"PSL - Failed in {nameof(NPC_tryToReceiveActiveObject_Prefix)}:\n{ex}", LogLevel.Error);
             }
+
+            try
+            {
+                // Temporarily change primary spouse. This is largely to bypass the 2-gift weekly limit that affects non-primary spouses
+                if (ModEntry.GetSpouses(Game1.player, false).ContainsKey(__instance.Name))
+                {
+                    __state = Game1.player.spouse;
+                    Game1.player.spouse = __instance.Name;
+                }
+            }
+            catch (Exception ex)
+            {
+                Monitor.Log($"Failed in {nameof(NPC_tryToReceiveActiveObject_Prefix)}:\n{ex}", LogLevel.Error);
+            }
+
             return true;
+        }
+
+        public static void NPC_tryToReceiveActiveObject_Postfix(string __state)
+        {
+            try
+            {
+                if (__state != null)
+                {
+                    Game1.player.spouse = __state;
+                }
+            }
+            catch (Exception ex)
+            {
+                Monitor.Log($"Failed in {nameof(NPC_tryToReceiveActiveObject_Postfix)}:\n{ex}", LogLevel.Error);
+            }
         }
 
         public static IEnumerable<CodeInstruction> NPC_tryToReceiveActiveObject_Transpiler(IEnumerable<CodeInstruction> instructions)
