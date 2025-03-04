@@ -144,7 +144,8 @@ namespace PolyamorySweetLove
 
                 if (!farmHouse.Equals(spouse.currentLocation))
                 {
-                    Game1.warpCharacter(spouse, "FarmHouse", getRandomOpenPointInFarmHouse(myRand, 0, 60));
+                    Point position = farmHouse.getRandomOpenPointInHouse(myRand);
+                    Game1.warpCharacter(spouse, farmHouse, new Vector2(position.X, position.Y));
                     spouse.faceDirection(myRand.Next(0, 4));
                     SMonitor.Log("PSL - Warping NPC from where ever to Random Open Place for begin placement - " + spouse.Name);
                 }
@@ -771,7 +772,7 @@ namespace PolyamorySweetLove
                 {
                     Game1.warpCharacter(spouse, farmer.homeLocation.Value, farmHouse.getSpouseBedSpot(spouse.Name));
                     SMonitor.Log("PSL - Warping "+spouse.Name+"to farmhouse because NPC was someother strange place.");
-                    spouse.modData.Add("SpouseNeedsPlaced", "");
+                    spouse.modData["SpouseNeedsPlaced"] = "";
                 }
 
                 //GenericDialogue
@@ -1393,6 +1394,28 @@ namespace PolyamorySweetLove
 
 
             return false;
+        }
+
+        /// <summary>
+        /// Get all locations including buildable locations (ie. Cabins)
+        /// </summary>
+        public static IList<GameLocation> GetAllLocations()
+        {
+            IList<GameLocation> locations = new List<GameLocation>(Game1.locations);
+            foreach (GameLocation location in Game1.locations)
+            {
+                if (location.IsBuildableLocation())
+                {
+                    foreach (Building building in location.buildings)
+                    {
+                        if (building.indoors.Value != null)
+                        {
+                            locations.Add(building.indoors.Value);
+                        }
+                    }
+                }
+            }
+            return locations;
         }
 
 

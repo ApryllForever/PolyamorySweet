@@ -376,12 +376,13 @@ namespace PolyamorySweetLove
                         ___babyName
                         }));
                     }
+                    string spouseName = lastBirthingSpouse.Name;
                     Game1.morningQueue.Enqueue(delegate
                     {
                         mp.globalChatInfoMessage("Baby", new string[]
                         {
                         Lexicon.capitalize(Game1.player.Name),
-                        Game1.player.spouse,
+                            spouseName,
                         Lexicon.getGenderedChildTerm(___isMale),
                         Lexicon.getPronoun(___isMale),
                         baby.displayName
