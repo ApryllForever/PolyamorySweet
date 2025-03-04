@@ -914,14 +914,6 @@ namespace PolyamorySweetLove
 
 
 
-
-
-
-
-
-
-
-
                             return false;
                         }
                         Monitor.Log($"Can't marry");
