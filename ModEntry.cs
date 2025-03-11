@@ -100,7 +100,7 @@ namespace PolyamorySweetLove
 
             Helper.ConsoleCommands.Add("Proposal_Sweet_Attempt", "Attempt engagement to a character.", new Action<string, string[]>(proposalAttempt));
             Helper.ConsoleCommands.Add("Proposal_Sweet_Force", "Force engagement to a character.", new Action<string, string[]>(proposalForce));
-
+            Helper.ConsoleCommands.Add("Delete_Weddings", "Deletes all scheduled weddings for the one entering the command.", new Action<string, string[]>(weddingDelete));
 
 
             PathFindControllerPatches.Initialize(Monitor, Config, helper);
@@ -933,8 +933,48 @@ namespace PolyamorySweetLove
             //if (actionButton)
 
             Button = false;
+        }
+
+
+        private void weddingDelete(string arg1, string[] arg2) //The purpose here is to fix the wedding infinity bug.
+        {
+            if (!Context.IsWorldReady)
+            {
+                Monitor.Log("Game not loaded.", LogLevel.Error);
+                return;
+            }
+
+           foreach( KeyValuePair<string,Friendship> wiggle in Game1.player.friendshipData.Pairs)  
+            {
+                Friendship friendship;
+                Game1.player.friendshipData.TryGetValue(wiggle.Key, out friendship);
+                friendship.WeddingDate = null;
+            }
+
+            List<NPC> all_characters = Utility.getAllCharacters();
+            foreach (NPC character in all_characters)
+            {
+                if (character == null) continue;
+               if (!character.IsVillager) continue;
+
+                Friendship friendship;
+                Game1.player.friendshipData.TryGetValue(character.Name, out friendship);
+
+                if(friendship == null) continue;
+
+                if(friendship.Status == FriendshipStatus.Engaged)
+                {
+                    friendship.WeddingDate = null;
+                    friendship.Status = FriendshipStatus.Friendly;
+                }
+
+                friendship.WeddingDate = null;
+            }
+
+            Monitor.Log("Removing all pending weddings for "+ Game1.player.displayName +".", LogLevel.Info);
 
         }
+
         private void proposalAttempt(string arg1, string[] arg2)
         {
             if (!Context.IsWorldReady)
@@ -949,17 +989,13 @@ namespace PolyamorySweetLove
                 if (monica != null)
                 {
                     //Button = true;
-
                     AttemptEngagement(monica, Game1.player);
-
                     //typeof(NPC).GetMethod("engagementResponse", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(monica, new object[] { Game1.player, false });
-
                 }
 
                 Monitor.Log($"{Game1.player.Name} attemping to propose to {monica}.", LogLevel.Info);
             }
         }
-
 
         private void proposalForce(string arg1, string[] arg2)
         {
@@ -970,15 +1006,11 @@ namespace PolyamorySweetLove
             }
             {
                 FarmHouse farmHouse = Utility.getHomeOfFarmer(Game1.player);
-
                 NPC JaneGrey = Game1.getCharacterFromName(arg2[0]);
-
                 TryForce(JaneGrey, Game1.player);
-
                 Monitor.Log($"{Game1.player.Name} is now engaged to {JaneGrey}.", LogLevel.Info);
             }
         }
-
 
         public static void AttemptEngagement(NPC __instance, Farmer who) //(NPC __instance, ref Farmer who,
         {

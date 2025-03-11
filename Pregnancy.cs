@@ -84,21 +84,29 @@ namespace PolyamorySweetLove
                     if (spouse.IsVillager)
                     {
                         __result = new BirthingEvent();
+                        return false;
                     }
 
                     //if (spouse.IsVillager)
                     if (!farmerlist.Contains(spouse.Name))
                     {
                         __result = new BirthingEvent();
+                         return false;
                     }
-                    else 
-                        { 
+                    else if(Game1.IsMultiplayer)
+                    {
+                        long spouseID;
 
-                    long spouseID = Game1.player.team.GetSpouse(Game1.player.UniqueMultiplayerID).Value;
-                    if (Game1.otherFarmers.ContainsKey(spouseID))
+                        if (Game1.player.team.GetSpouse(Game1.player.UniqueMultiplayerID).HasValue )
                         {
-                        __result = new PlayerCoupleBirthingEvent();
+                            spouseID = Game1.player.team.GetSpouse(Game1.player.UniqueMultiplayerID).Value;
+                            if (Game1.otherFarmers.ContainsKey(spouseID))
+                            {
+                                __result = new PlayerCoupleBirthingEvent();
+                            }
                         }
+
+                  
                     }
 
 
