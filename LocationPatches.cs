@@ -20,6 +20,8 @@ namespace PolyamorySweetLove
         private static ModConfig Config;
         private static IModHelper Helper;
 
+        static string SwimLantana = "The water looks so lovely! Do you want to swim with me?";
+
         // call this method from your Entry class
         public static void Initialize(IMonitor monitor, ModConfig config, IModHelper helper)
         {
@@ -79,8 +81,32 @@ namespace PolyamorySweetLove
             }
         }
 
+        public static bool GameLocation_answerDialogue_Prefix(Beach __instance, Response answer, ref bool __result)
+        {
+
+            if (__instance.lastQuestionKey != null && __instance.afterQuestion == null && __instance.lastQuestionKey.StartsWith("LantanaBeach"))
+            {
+                string qa = __instance.lastQuestionKey.Split(' ')[0] + "_" + answer.responseKey;
+                switch (qa)
+                {
+                    case "LantanaBeachSwim_Yes":
+                        Event MariSwimEvent = new Event((Game1.content.LoadString("Data\\Events\\Beach:LantanaSwimEvent", ArgUtility.EscapeQuotes(Game1.player.Name))));
+                        __instance.startEvent(MariSwimEvent);
+                        __result = true; return false;
+                }
+            }
+
+            return true;
+        }
+
+
         public static bool Beach_checkAction_Prefix(Beach __instance, Location tileLocation, xTile.Dimensions.Rectangle viewport, Farmer who, ref bool __result, NPC ___oldMariner)
         {
+
+            NPC lantana = Game1.getCharacterFromName("MermaidLantana");
+        
+
+
             try
             {
                 if (___oldMariner != null && ___oldMariner.TilePoint.X == tileLocation.X && ___oldMariner.TilePoint.Y == tileLocation.Y)
@@ -105,6 +131,10 @@ namespace PolyamorySweetLove
                     }
                     __result = true;
                     return false;
+                }
+                else if (lantana != null && lantana.TilePoint.X == 54 && lantana.TilePoint.Y == 19 )
+                {
+                    __instance.createQuestionDialogue(SwimLantana, __instance.createYesNoResponses(), "LantanaBeachSwim");
                 }
             }
             catch (Exception ex)

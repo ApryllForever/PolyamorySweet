@@ -57,6 +57,11 @@ namespace PolyamorySweetLove
 
                     NPC ex = Game1.getCharacterFromName(key);
                     ex.PerformDivorce();
+
+                    if (ex.modData.ContainsKey("PolyamorySweetWeddingDate"))
+                    {
+                        ex.modData.Remove("PolyamorySweetWeddingDate");
+                    }
                     if (__instance.spouse == key)
                     {
                         __instance.spouse = null;

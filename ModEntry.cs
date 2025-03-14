@@ -235,6 +235,11 @@ namespace PolyamorySweetLove
             );
 
             harmony.Patch(
+              original: AccessTools.Method(typeof(GameLocation), nameof(GameLocation.answerDialogue)),
+              prefix: new HarmonyMethod(typeof(LocationPatches), nameof(LocationPatches.GameLocation_answerDialogue_Prefix))
+           );
+
+            harmony.Patch(
                original: AccessTools.Method(typeof(Beach), "resetLocalState"),
                postfix: new HarmonyMethod(typeof(LocationPatches), nameof(LocationPatches.Beach_resetLocalState_Postfix))
             );
@@ -1122,7 +1127,11 @@ namespace PolyamorySweetLove
                     }
 
                     friendship.WeddingDate = worldDate;
+
+                    __instance.modData.Add("PolyamorySweetWeddingDate", friendship.WeddingDate.TotalDays.ToString()); //This adds a way for people to be able to get the wedding date in Content Patcher.
+
                     __instance.CurrentDialogue.Clear();
+
 
                     {
                         Dialogue dialogue2 = StardewValley.Dialogue.TryGetDialogue(__instance, "Data\\EngagementDialogue:" + __instance.Name + "0");
