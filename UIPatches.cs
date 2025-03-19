@@ -194,10 +194,6 @@ namespace PolyamorySweetLove
                     __instance.drawNPCSlotHeart(b, i, entry, hearts, isDating, isCurrentSpouse); // This MotherFucker is private. Fixed 1.6.9!!! Thx Pathos! I luv u!!!!
 
                     //typeof(SocialPage).GetMethod("drawNPCSlotHeart", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(__instance, new object[] { b,i,entry,hearts,isDating,isCurrentSpouse });
-
-
-
-
                 }
                 if (datable || housemate)
                 {
@@ -242,9 +238,7 @@ namespace PolyamorySweetLove
                     
                        // {
                          //   b.Draw(Game1.objectSpriteSheet, new Vector2(__instance.xPositionOnScreen + IClickableMenu.borderWidth * 7 / 4 + 192, sprites[i].bounds.Y), Game1.getSourceRectForStandardTileSheet(Game1.objectSpriteSheet, housemate ? 808 : 458, 16, 16), Color.White, 0f, Vector2.Zero, 2f, SpriteEffects.None, 0.88f);
-                       // }
-
-                    
+                       // }  
                 }
                 if (!isCurrentSpouse && !entry.IsChild)
                 {
