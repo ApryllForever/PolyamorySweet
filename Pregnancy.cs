@@ -381,11 +381,11 @@ namespace PolyamorySweetLove
                     {
                         mp.globalChatInfoMessage("Baby", new string[]
                         {
-                        Lexicon.capitalize(Game1.player.Name),
+                            Lexicon.capitalize(Game1.player.Name),
                             spouseName,
-                        Lexicon.getGenderedChildTerm(___isMale),
-                        Lexicon.getPronoun(___isMale),
-                        baby.displayName
+                            Lexicon.getGenderedChildTerm(___isMale),
+                            Lexicon.getPronoun(___isMale),
+                            baby.displayName
                         });
                     });
                     if (Game1.keyboardDispatcher != null)
@@ -460,7 +460,7 @@ namespace PolyamorySweetLove
             }
             else if (spouse.Gender == 0)
             {
-                ___message = Game1.content.LoadString("Strings\\Events:BirthMessage_PlayerMother", Lexicon.getGenderedChildTerm(___isMale));
+                ___message = Game1.content.LoadString("Strings\\Events:BirthMessage_PlayerMother", Lexicon.getGenderedChildTerm(___isMale)) + $" ({spouse.displayName})";
                 SMonitor.Log("PSL - Player is giving birth!");
             }
 
