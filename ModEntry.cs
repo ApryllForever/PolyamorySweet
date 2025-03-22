@@ -62,9 +62,12 @@ namespace PolyamorySweetLove
         public static string spouseToDivorce = null;
         public static int divorceHeartsLost;
 
+
         public static Dictionary<long, Dictionary<string, NPC>> currentSpouses = new Dictionary<long, Dictionary<string, NPC>>();
         public static Dictionary<long, Dictionary<string, NPC>> currentUnofficialSpouses = new Dictionary<long, Dictionary<string, NPC>>();
         public static SortedDictionary<NPC, int> sortedSpouses = new SortedDictionary<NPC, int>();
+        public static Dictionary<string, int> SpouseWeddingDate = new Dictionary<string, int>();
+
 
         /// <summary>The mod entry point, called after the mod is first loaded.</summary>
         /// <param name="helper">Provides simplified APIs for writing mods.</param>
@@ -868,6 +871,17 @@ namespace PolyamorySweetLove
                         {
                             typeof(NPC).GetMethod("engagementResponse", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(e.Npc, new object[] { Game1.player, false });
 
+                            WorldDate worldDate = new WorldDate(Game1.Date);
+                            worldDate.TotalDays += 3;
+                            while (!Game1.canHaveWeddingOnDay(worldDate.DayOfMonth, worldDate.Season))
+                            {
+                                worldDate.TotalDays++;
+                            }
+
+
+                            e.Npc.WeddingDate().Equals(worldDate);
+
+
                         }
 
                         else
@@ -909,13 +923,7 @@ namespace PolyamorySweetLove
                     Game1.drawDialogue(e.Npc);
 
                 }
-
-
-
             }
-
-
-
         }
 
         private void weddingDelete(string arg1, string[] arg2) //The purpose here is to fix the wedding infinity bug.
@@ -931,6 +939,10 @@ namespace PolyamorySweetLove
                 Friendship friendship;
                 Game1.player.friendshipData.TryGetValue(wiggle.Key, out friendship);
                 friendship.WeddingDate = null;
+                NPC npc = Game1.getCharacterFromName(wiggle.Key);
+                npc.WeddingDate().Equals(null);
+
+
             }
 
             List<NPC> all_characters = Utility.getAllCharacters();
@@ -949,8 +961,9 @@ namespace PolyamorySweetLove
                     friendship.WeddingDate = null;
                     friendship.Status = FriendshipStatus.Friendly;
                 }
-
+                character.WeddingDate().Equals(null);
                 friendship.WeddingDate = null;
+
             }
 
             Monitor.Log("Removing all pending weddings for "+ Game1.player.displayName +".", LogLevel.Info);
@@ -1107,6 +1120,10 @@ namespace PolyamorySweetLove
 
                     __instance.modData.Add("PolyamorySweetWeddingDate", friendship.WeddingDate.TotalDays.ToString()); //This adds a way for people to be able to get the wedding date in Content Patcher.
 
+                    __instance.WeddingDate().Equals(worldDate);
+
+                    ModEntry.SpouseWeddingDate.Add(__instance.Name, friendship.WeddingDate.TotalDays);
+
                     __instance.CurrentDialogue.Clear();
 
 
@@ -1224,6 +1241,7 @@ namespace PolyamorySweetLove
                         who.changeFriendship(1, __instance);
                         //who.reduceActiveItemByOne();
                         who.completelyStopAnimatingOrDoingAction();
+                        __instance.WeddingDate().Equals(worldDate);
                         Game1.drawDialogue(__instance);
                     }
                     else
@@ -1381,16 +1399,6 @@ namespace PolyamorySweetLove
             }
 
         }
-
-
-       
-     
-
-
-
-
-
-
 
     }
     }

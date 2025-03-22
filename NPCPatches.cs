@@ -912,7 +912,15 @@ namespace PolyamorySweetLove
 
                             typeof(NPC).GetMethod("engagementResponse", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(__instance, new object[] { who, false });
 
+                            WorldDate worldDate = new WorldDate(Game1.Date);
+                            worldDate.TotalDays += 3;
+                            while (!Game1.canHaveWeddingOnDay(worldDate.DayOfMonth, worldDate.Season))
+                            {
+                                worldDate.TotalDays++;
+                            }
 
+
+                            __instance.WeddingDate().Equals(worldDate);
 
                             return false;
                         }

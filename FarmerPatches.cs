@@ -79,9 +79,12 @@ namespace PolyamorySweetLove
                     Utility.getHomeOfFarmer(__instance).setFloors();
 
                     Game1.getFarm().addSpouseOutdoorArea(__instance.spouse == null ? "" : __instance.spouse);
+                    NPC nPC = Game1.getCharacterFromName(key);
+                    nPC.WeddingDate().Equals(null);
                 }
 
                 ModEntry.spouseToDivorce = null;
+                
                 return false;
             }
             catch (Exception ex)
