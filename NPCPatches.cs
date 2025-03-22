@@ -962,15 +962,13 @@ namespace PolyamorySweetLove
                         who.completelyStopAnimatingOrDoingAction();
                         who.currentLocation.localSound("give_gift");
                         MovieTheater.Invite(who, __instance);
-                        if (who == Game1.player)
+
+                        ModEntry.mp.globalChatInfoMessage("MovieInviteAccept", new string[]
                         {
-                            ModEntry.mp.globalChatInfoMessage("MovieInviteAccept", new string[]
-                            {
-                            Game1.player.displayName,
+                            who.displayName,
                             __instance.displayName
-                            });
-                            return false;
-                        }
+                        });
+                        return false;
                     }
                     return true;
                 }
@@ -984,20 +982,20 @@ namespace PolyamorySweetLove
                         {
 
 
-                            //if (c.Equals(Game1.player.spouse) || c.Equals(roomie))
-                            if (ModEntry.GetSpouses(Game1.player, true).ContainsKey(__instance.Name))
+                            //if (c.Equals(who.spouse) || c.Equals(roomie))
+                            if (ModEntry.GetSpouses(who, true).ContainsKey(__instance.Name))
                             {
 
                                 {
-                                    Game1.player.spouse = __instance.Name;
-                                    ModEntry.ResetSpouses(Game1.player);
+                                    who.spouse = __instance.Name;
+                                    ModEntry.ResetSpouses(who);
                                     Game1.currentLocation.playSound("dwop", null, null, SoundContext.NPC);
 
                                     {
-                                        FarmHouse fh = Utility.getHomeOfFarmer(Game1.player);
+                                        FarmHouse fh = Utility.getHomeOfFarmer(who);
                                         fh.showSpouseRoom();
 
-                                        if (Game1.player.currentLocation == fh)
+                                        if (who.currentLocation == fh)
                                         {
                                             Helper.Reflection.GetMethod(fh, "resetLocalState").Invoke();
                                         }
@@ -1006,9 +1004,9 @@ namespace PolyamorySweetLove
                                             Game1.addHUDMessage(new HUDMessage("The room and patio will change when you enter the farmhouse."));
                                         }
 
-                                        Game1.player.changeFriendship(25, __instance);
-                                        Game1.player.reduceActiveItemByOne();
-                                        Game1.player.completelyStopAnimatingOrDoingAction();
+                                        who.changeFriendship(25, __instance);
+                                        who.reduceActiveItemByOne();
+                                        who.completelyStopAnimatingOrDoingAction();
                                         __instance.doEmote(20, true);
                                         __instance.CurrentDialogue.Push(new Dialogue(__instance, "Strings\\StringsFromCSFiles:AineFlower_spouse", false));
                                         Game1.drawDialogue(__instance);
@@ -1028,10 +1026,10 @@ namespace PolyamorySweetLove
                             }
                             else
                             {
-                                Game1.player.reduceActiveItemByOne();
-                                Game1.player.completelyStopAnimatingOrDoingAction();
+                                who.reduceActiveItemByOne();
+                                who.completelyStopAnimatingOrDoingAction();
                                 __instance.doEmote(20, true);
-                                Game1.player.changeFriendship(100, __instance);
+                                who.changeFriendship(100, __instance);
                                 __instance.CurrentDialogue.Push(new Dialogue(__instance, "Strings\\StringsFromCSFiles:AineFlower_accept", false));
                                 Game1.drawDialogue(__instance);
                                 friendship.GiftsToday--;
@@ -1047,20 +1045,15 @@ namespace PolyamorySweetLove
                 }
                 else if (who.ActiveItem.Name.Equals("Lilith Token") )
                 {
-                    if (__instance is Child)
-                    {
-
-
-                    }
-                     if ( !probe)
+                    if ( !probe)
                     {
 
                         if (__instance.Name.Equals("Abigail"))
                         {
-                            Game1.player.reduceActiveItemByOne();
-                            Game1.player.completelyStopAnimatingOrDoingAction();
+                            who.reduceActiveItemByOne();
+                            who.completelyStopAnimatingOrDoingAction();
                             __instance.doEmote(60, true);
-                            Game1.player.changeFriendship(137, __instance);
+                            who.changeFriendship(137, __instance);
                             __instance.CurrentDialogue.Push(new Dialogue(__instance, "Strings\\StringsFromCSFiles:LilithToken_accept", false));
                             Game1.drawDialogue(__instance);
                             friendship.GiftsToday--;
@@ -1068,10 +1061,10 @@ namespace PolyamorySweetLove
                         }
                         else if (__instance.modData.ContainsKey("LilithToken"))
                         {
-                            Game1.player.reduceActiveItemByOne();
-                            Game1.player.completelyStopAnimatingOrDoingAction();
+                            who.reduceActiveItemByOne();
+                            who.completelyStopAnimatingOrDoingAction();
                             __instance.doEmote(60, true);
-                            Game1.player.changeFriendship(137, __instance);
+                            who.changeFriendship(137, __instance);
                             __instance.CurrentDialogue.Push(new Dialogue(__instance, "Strings\\StringsFromCSFiles:LilithToken_accept", false));
                             Game1.drawDialogue(__instance);
                             friendship.GiftsToday--;
@@ -1079,13 +1072,14 @@ namespace PolyamorySweetLove
                         }
                         else
                         {
-                            Game1.player.completelyStopAnimatingOrDoingAction();
-                            Game1.player.changeFriendship(-137, __instance);
+                            who.completelyStopAnimatingOrDoingAction();
+                            who.changeFriendship(-137, __instance);
                             __instance.doEmote(36, true);
                             __instance.CurrentDialogue.Push(new Dialogue(__instance, "Strings\\StringsFromCSFiles:LilithToken_reject", false));
                             Game1.drawDialogue(__instance);
                         }
                     }
+                    __result = true;
                     return false;
 
 
@@ -1105,11 +1099,11 @@ namespace PolyamorySweetLove
                         }
                         if (__instance.IsVillager)
                         {
-                            if (ModEntry.GetSpouses(Game1.player, true).ContainsKey(__instance.Name))
+                            if (ModEntry.GetSpouses(who, true).ContainsKey(__instance.Name))
                             {
-                                Game1.player.changeFriendship(25, __instance);
-                                Game1.player.reduceActiveItemByOne();
-                                Game1.player.completelyStopAnimatingOrDoingAction();
+                                who.changeFriendship(25, __instance);
+                                who.reduceActiveItemByOne();
+                                who.completelyStopAnimatingOrDoingAction();
                                 __instance.doEmote(20, true);
                                 __instance.CurrentDialogue.Push(new Dialogue(__instance, "Strings\\StringsFromCSFiles:AphroditeFlower_accept", false));
                                 Game1.drawDialogue(__instance);
@@ -1123,8 +1117,8 @@ namespace PolyamorySweetLove
                             }
                             else
                             {
-                                Game1.player.changeFriendship(-25, __instance);
-                                Game1.player.completelyStopAnimatingOrDoingAction();
+                                who.changeFriendship(-25, __instance);
+                                who.completelyStopAnimatingOrDoingAction();
                                 __instance.doEmote(36, true);
                                 __instance.CurrentDialogue.Push(new Dialogue(__instance, "Strings\\StringsFromCSFiles:AphroditeFlower_reject", false));
                                 Game1.drawDialogue(__instance);
@@ -1134,8 +1128,8 @@ namespace PolyamorySweetLove
                         }
                         else
                         {
-                            Game1.player.changeFriendship(-25, __instance);
-                            Game1.player.completelyStopAnimatingOrDoingAction();
+                            who.changeFriendship(-25, __instance);
+                            who.completelyStopAnimatingOrDoingAction();
                             __instance.doEmote(36, true);
                             __instance.CurrentDialogue.Push(new Dialogue(__instance, "Strings\\StringsFromCSFiles:AphroditeFlower_reject", false));
                             Game1.drawDialogue(__instance);
@@ -1161,10 +1155,10 @@ namespace PolyamorySweetLove
             try
             {
                 // Temporarily change primary spouse. This is largely to bypass the 2-gift weekly limit that affects non-primary spouses
-                if (ModEntry.GetSpouses(Game1.player, false).ContainsKey(__instance.Name))
+                if (ModEntry.GetSpouses(who, false).ContainsKey(__instance.Name))
                 {
-                    __state = Game1.player.spouse;
-                    Game1.player.spouse = __instance.Name;
+                    __state = who.spouse;
+                    who.spouse = __instance.Name;
                 }
             }
             catch (Exception ex)

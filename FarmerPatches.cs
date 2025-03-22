@@ -235,16 +235,16 @@ namespace PolyamorySweetLove
         {
             try
             {
-                if (Game1.isFestival())// && Game1.currentSeason == "spring" && Game1.Date.DayOfMonth == 24)
+                if (EventPatches.startingLoadActors && Game1Patches.lastGotCharacter != null && __instance != null)
                 {
-
-                    __result = Utility.getHomeOfFarmer(__instance)?.getChildren()?.FindAll(c => c.displayName.EndsWith($"_"));
-                    return false;
-                }
-
-                else if (EventPatches.startingLoadActors && Environment.StackTrace.Contains("command_loadActors") && !Environment.StackTrace.Contains("addActor") && !Environment.StackTrace.Contains("Dialogue") && !Environment.StackTrace.Contains("checkForSpecialCharacters") && Game1Patches.lastGotCharacter != null && __instance != null)
-                {
-                    __result = Utility.getHomeOfFarmer(__instance)?.getChildren()?.FindAll(c => c.displayName.EndsWith($"({Game1Patches.lastGotCharacter})")) ?? new List<Child>();
+                    var spouses = ModEntry.GetSpouses(__instance, true);
+                    string? primary = null;
+                    if (spouses.Count > 0)
+                    {
+                        primary = spouses.First().Key;
+                    }
+                    bool assignUnknown = Game1Patches.lastGotCharacter == primary;  // Assigning children without parent data to the primary spouse (children born while this mod was not installed)
+                    __result = Utility.getHomeOfFarmer(__instance)?.getChildren()?.FindAll(c => (c.modData.TryGetValue("ApryllForever.PolyamorySweetLove/OtherParent", out string parent) && parent == Game1Patches.lastGotCharacter) || (parent == null && assignUnknown)) ?? new List<Child>();
                     return false;
                 }
             }
