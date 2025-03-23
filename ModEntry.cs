@@ -879,7 +879,7 @@ namespace PolyamorySweetLove
                             }
 
 
-                            e.Npc.WeddingDate().Equals(worldDate);
+                            e.Npc.modData["ApryllForever.PolyamorySweetLove/WeddingDate"] = worldDate.ToString();
 
 
                         }
@@ -940,7 +940,7 @@ namespace PolyamorySweetLove
                 Game1.player.friendshipData.TryGetValue(wiggle.Key, out friendship);
                 friendship.WeddingDate = null;
                 NPC npc = Game1.getCharacterFromName(wiggle.Key);
-                npc.WeddingDate().Equals(null);
+                npc.modData.Remove("ApryllForever.PolyamorySweetLove/WeddingDate");
 
 
             }
@@ -960,8 +960,7 @@ namespace PolyamorySweetLove
                 {
                     friendship.WeddingDate = null;
                     friendship.Status = FriendshipStatus.Friendly;
-                }
-                character.WeddingDate().Equals(null);
+                } 
                 friendship.WeddingDate = null;
 
             }
@@ -1118,11 +1117,13 @@ namespace PolyamorySweetLove
 
                     friendship.WeddingDate = worldDate;
 
-                    __instance.modData.Add("PolyamorySweetWeddingDate", friendship.WeddingDate.TotalDays.ToString()); //This adds a way for people to be able to get the wedding date in Content Patcher.
+                     //This adds a way for people to be able to get the wedding date in Content Patcher.
 
-                    __instance.WeddingDate().Equals(worldDate);
 
                     ModEntry.SpouseWeddingDate.Add(__instance.Name, friendship.WeddingDate.TotalDays);
+
+
+                    __instance.modData["ApryllForever.PolyamorySweetLove/WeddingDate"] = friendship.WeddingDate.TotalDays.ToString();
 
                     __instance.CurrentDialogue.Clear();
 
@@ -1241,7 +1242,7 @@ namespace PolyamorySweetLove
                         who.changeFriendship(1, __instance);
                         //who.reduceActiveItemByOne();
                         who.completelyStopAnimatingOrDoingAction();
-                        __instance.WeddingDate().Equals(worldDate);
+                        __instance.modData["ApryllForever.PolyamorySweetLove/WeddingDate"] = friendship.WeddingDate.TotalDays.ToString();
                         Game1.drawDialogue(__instance);
                     }
                     else

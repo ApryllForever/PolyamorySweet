@@ -920,7 +920,7 @@ namespace PolyamorySweetLove
                             }
 
 
-                            __instance.WeddingDate().Equals(worldDate);
+                            __instance.modData["ApryllForever.PolyamorySweetLove/WeddingDate"] = friendship.WeddingDate.TotalDays.ToString();
 
                             return false;
                         }

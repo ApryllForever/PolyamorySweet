@@ -58,9 +58,9 @@ namespace PolyamorySweetLove
                     NPC ex = Game1.getCharacterFromName(key);
                     ex.PerformDivorce();
 
-                    if (ex.modData.ContainsKey("PolyamorySweetWeddingDate"))
+                    if (ex.modData.ContainsKey("ApryllForever.PolyamorySweetLove/WeddingDate")) 
                     {
-                        ex.modData.Remove("PolyamorySweetWeddingDate");
+                        ex.modData.Remove("ApryllForever.PolyamorySweetLove/WeddingDate");
                     }
                     if (__instance.spouse == key)
                     {
@@ -80,7 +80,6 @@ namespace PolyamorySweetLove
 
                     Game1.getFarm().addSpouseOutdoorArea(__instance.spouse == null ? "" : __instance.spouse);
                     NPC nPC = Game1.getCharacterFromName(key);
-                    nPC.WeddingDate().Equals(null);
                 }
 
                 ModEntry.spouseToDivorce = null;

@@ -11,7 +11,7 @@ internal class WeddingDateToken
 
     // private Dictionary<string, int> NPCWeddingDate = new Dictionary<string, int>(); 
 
-    private int weddingDate = new int();    
+   // private string weddingDate = String.Empty;    
 
     /// <summary>Get whether the token allows input arguments (e.g. an NPC name for a relationship token).</summary>
     public bool AllowsInput()
@@ -48,17 +48,17 @@ internal class WeddingDateToken
     {
         // get name
         string name = input;
-            int weddingdate;
+           // string weddingdate;
         if (string.IsNullOrWhiteSpace(name))
             yield break;
 
        NPC babe = Game1.getCharacterFromName(name);
-
-            weddingdate =  babe.WeddingDate();
-
-      
+            if(babe == null) yield break;
+            if (babe.modData.ContainsKey("ApryllForever.PolyamorySweetLove/WeddingDate"))
             {
-                yield return weddingDate.ToString();
+                babe.modData.TryGetValue("ApryllForever.PolyamorySweetLove/WeddingDate", out string weddingDate);
+            
+                yield return weddingDate;
             }
 
         yield return "";
