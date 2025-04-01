@@ -76,7 +76,7 @@ namespace PolyamorySweetLove
                     return spouses.ToArray();
                 });
 
-                contentPatcherAPI.RegisterToken(context.ModManifest, "NPCName", new WeddingDateToken());
+                contentPatcherAPI.RegisterToken(context.ModManifest, "NPCWeddingDate", new WeddingDateToken());
 
 
             }
