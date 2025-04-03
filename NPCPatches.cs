@@ -1099,7 +1099,7 @@ namespace PolyamorySweetLove
                         }
                         if (__instance.IsVillager)
                         {
-                            if (ModEntry.GetSpouses(who, true).ContainsKey(__instance.Name))
+                            if (ModEntry.GetSpouses(who, false).ContainsKey(__instance.Name))
                             {
                                 who.changeFriendship(25, __instance);
                                 who.reduceActiveItemByOne();

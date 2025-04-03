@@ -51,6 +51,13 @@ namespace PolyamorySweetLove
                 farmer.spouse = currentSpouses[farmer.UniqueMultiplayerID].First().Key;
             SMonitor.Log($"reloaded {currentSpouses[farmer.UniqueMultiplayerID].Count} spouses for {farmer.Name} {farmer.UniqueMultiplayerID}");
         }
+
+        /// <summary>
+        /// Gets all spouses (and engaged npcs) for the farmer
+        /// </summary>
+        /// <param name="farmer"></param>
+        /// <param name="all">true returns all spouses + engaged npc if any. false returns only spouses.</param>
+        /// <returns></returns>
         public static Dictionary<string, NPC> GetSpouses(Farmer farmer, bool all)
         {
             if (!currentSpouses.ContainsKey(farmer.UniqueMultiplayerID) || ((currentSpouses[farmer.UniqueMultiplayerID].Count == 0 && farmer.spouse != null)))
@@ -84,7 +91,7 @@ namespace PolyamorySweetLove
 
         public static string GetRandomSpouse(Farmer f)
         {
-            var spouses = GetSpouses(f, true);
+            var spouses = GetSpouses(f, false);
             if (spouses.Count == 0)
                 return null;
             ShuffleDic(ref spouses);
@@ -114,7 +121,7 @@ namespace PolyamorySweetLove
             if (farmer == null)
                 return;
 
-            List<NPC> allSpouses = GetSpouses(farmer, true).Values.ToList();
+            List<NPC> allSpouses = GetSpouses(farmer, false).Values.ToList();
 
             if (allSpouses.Count == 0)
             {
@@ -1123,9 +1130,9 @@ namespace PolyamorySweetLove
         public static List<string> GetBedSpouses(FarmHouse fh)
         {
             if (Config.RoommateRomance)
-                return GetSpouses(fh.owner, true).Keys.ToList();
+                return GetSpouses(fh.owner, false).Keys.ToList();
 
-            return GetSpouses(fh.owner, true).Keys.ToList().FindAll(s => !fh.owner.friendshipData[s].RoommateMarriage);
+            return GetSpouses(fh.owner, false).Keys.ToList().FindAll(s => !fh.owner.friendshipData[s].RoommateMarriage);
         }
 
         public static List<string> ReorderSpousesForSleeping(List<string> sleepSpouses)
