@@ -97,12 +97,7 @@ namespace PolyamorySweetLove
             //if (SortSpouseOrder == true)
             {
                 //spousesortigncodehere
-
-
-
             }
-
-
             Point porchspot = farmHouse.getPorchStandingSpot();
             Point kitchenspot = farmHouse.getKitchenStandingSpot();
             Point bedspot = farmHouse.getBedSpot();

@@ -938,10 +938,15 @@ namespace PolyamorySweetLove
             {
                 Friendship friendship;
                 Game1.player.friendshipData.TryGetValue(wiggle.Key, out friendship);
-                friendship.WeddingDate = null;
-                NPC npc = Game1.getCharacterFromName(wiggle.Key);
-                npc.modData.Remove("ApryllForever.PolyamorySweetLove/WeddingDate");
 
+                if (friendship.IsEngaged())
+                {
+                    friendship.WeddingDate = null;
+                    NPC npc = Game1.getCharacterFromName(wiggle.Key);
+                    if (npc.modData != null && npc.modData.ContainsKey("ApryllForever.PolyamorySweetLove/WeddingDate"))
+                        npc.modData.Remove("ApryllForever.PolyamorySweetLove/WeddingDate");
+                    Monitor.Log("Removed upcoming wedding for "+ npc.displayName +".", LogLevel.Alert);
+                }
 
             }
 
@@ -950,6 +955,8 @@ namespace PolyamorySweetLove
             {
                 if (character == null) continue;
                if (!character.IsVillager) continue;
+               if(character.Age == 2) continue;
+                if (character is Child) continue;
 
                 Friendship friendship;
                 Game1.player.friendshipData.TryGetValue(character.Name, out friendship);
