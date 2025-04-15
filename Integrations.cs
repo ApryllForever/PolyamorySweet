@@ -1,4 +1,5 @@
 ﻿using PolyamorySweetLove;
+using SpaceCore;
 using StardewModdingAPI;
 using StardewValley;
 using System;
@@ -74,6 +75,10 @@ namespace PolyamorySweetLove
                     });
                     return spouses.ToArray();
                 });
+
+                contentPatcherAPI.RegisterToken(context.ModManifest, "NPCWeddingDate", new WeddingDateToken());
+
+
             }
         }
     }

@@ -25,6 +25,9 @@ namespace PolyamorySweetLove
 
             sc.RegisterSerializerType(typeof(LantanaTemple));
 
+           // sc.RegisterCustomProperty(typeof(NPC), "WeddingDate", typeof(int), AccessTools.Method(typeof (NPC_WeddingDate), nameof(NPC_WeddingDate.WeddingDate)), AccessTools.Method(typeof(NPC_WeddingDate), nameof(NPC_WeddingDate.set_WeddingDate)));
+
+          
 
             // get Generic Mod Config Menu's API (if it's installed)
             var configMenu = Helper.ModRegistry.GetApi<IGenericModConfigMenuApi>("spacechase0.GenericModConfigMenu");
@@ -161,14 +164,6 @@ namespace PolyamorySweetLove
                setValue: value => Config.ImpregnatingFemmeNPC = value,
                tooltip: () => "Allows a female Farmer to get impregnated by her wife. Must be set to false if Impregnating Mother is set to true."
            );
-
-
-
-
-
-
-            
-
         LoadModApis();
         }
 
@@ -179,8 +174,6 @@ namespace PolyamorySweetLove
         }
         public static void GameLoop_SaveLoaded(object sender, SaveLoadedEventArgs e)
         {
-
-
             SetAllNPCsDatable(); //What the hell have I done here? What is this???
             ResetSpouses(Game1.player);
         }
