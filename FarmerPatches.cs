@@ -2,6 +2,7 @@
 using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Characters;
+using StardewValley.Extensions;
 using StardewValley.Menus;
 using System;
 using System.Collections.Generic;
@@ -95,7 +96,7 @@ namespace PolyamorySweetLove
         {
             try
             {
-                __result = __instance.team.IsMarried(__instance.UniqueMultiplayerID) || ModEntry.GetSpouses(__instance, true).Count > 0;
+                __result = __instance.team.IsMarried(__instance.UniqueMultiplayerID) || ModEntry.GetSpouses(__instance, false).Count > 0;
                 return false;
             }
             catch (Exception ex)
@@ -253,6 +254,60 @@ namespace PolyamorySweetLove
                 Monitor.Log($"Failed in {nameof(Farmer_getChildren_Prefix)}:\n{ex}", LogLevel.Error);
             }
             return true;
+        }
+
+        public static bool Farmer_GetDaysMarried_Prefix(Farmer __instance, ref int  __result)
+        {
+            try
+            {
+                if (ModEntry.tempOfficialSpouse != null && __instance.friendshipData.ContainsKey(ModEntry.tempOfficialSpouse.Name) && __instance.friendshipData[ModEntry.tempOfficialSpouse.Name].IsMarried())
+                {
+                    __result = __instance.friendshipData[ModEntry.tempOfficialSpouse.Name].DaysMarried;
+                    return false;
+                }
+            }
+            catch (Exception ex)
+            {
+                Monitor.Log($"Failed in {nameof(Farmer_GetDaysMarried_Prefix)}:\n{ex}", LogLevel.Error);
+            }
+            return true;
+        }
+
+        public static bool Farmer_getChildrenCount_Prefix(Farmer __instance, ref int __result)
+        {
+            try
+            {
+                if (ModEntry.tempOfficialSpouse != null)
+                {
+                    __result = Utility.getHomeOfFarmer(__instance).getChildren().FindAll(c => (c.modData.TryGetValue("ApryllForever.PolyamorySweetLove/OtherParent", out string parent) && parent == ModEntry.tempOfficialSpouse.Name)).Count;
+                    return false;
+                }
+            }
+            catch (Exception ex)
+            {
+                Monitor.Log($"Failed in {nameof(Farmer_getChildrenCount_Prefix)}:\n{ex}", LogLevel.Error);
+            }
+            return true;
+        }
+
+        public static void Utility_CreateDaySaveRandom_Postfix(ref Random __result)
+        {
+            try
+            {
+                if (ModEntry.tempOfficialSpouse != null)
+                {
+                    Farmer farmer = ModEntry.tempOfficialSpouse.getSpouse();
+                    List<string> spouses = ModEntry.GetSpouses(farmer, true).Keys.ToList();
+                    spouses.Sort();
+                    int index = spouses.IndexOf(ModEntry.tempOfficialSpouse.Name);
+                    for (int i = 0; i < index; i++)
+                        __result.NextBool();
+                }
+            }
+            catch (Exception ex)
+            {
+                Monitor.Log($"Failed in {nameof(Utility_CreateDaySaveRandom_Postfix)}:\n{ex}", LogLevel.Error);
+            }
         }
     }
 }

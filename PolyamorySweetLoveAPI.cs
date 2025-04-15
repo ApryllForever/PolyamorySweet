@@ -11,7 +11,7 @@ namespace PolyamorySweetLove
         {
             ModEntry.PlaceSpousesInFarmhouse(farmHouse);
         }
-        public Dictionary<string, NPC> GetSpouses(Farmer farmer, bool all = true)
+        public Dictionary<string, NPC> GetSpouses(Farmer farmer, bool all = false)
         {
             return ModEntry.GetSpouses(farmer, all);
         }

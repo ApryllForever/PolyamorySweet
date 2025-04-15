@@ -85,6 +85,7 @@ namespace PolyamorySweetLove
             helper.Events.GameLoop.GameLaunched += GameLoop_GameLaunched;
             helper.Events.GameLoop.SaveLoaded += GameLoop_SaveLoaded;
             helper.Events.GameLoop.DayStarted += GameLoop_DayStarted;
+            helper.Events.GameLoop.DayEnding += GameLoop_DayEnding;
             helper.Events.GameLoop.OneSecondUpdateTicked += GameLoop_OneSecondUpdateTicked;
 
             helper.Events.Content.AssetRequested += Content_AssetRequested;
@@ -115,7 +116,14 @@ namespace PolyamorySweetLove
 
             harmony.Patch(
                original: AccessTools.Method(typeof(NPC), nameof(NPC.marriageDuties)),
-               postfix: new HarmonyMethod(typeof(NPCPatches), nameof(NPCPatches.NPC_marriageDuties_Postfix))
+               prefix: new HarmonyMethod(typeof(NPCPatches), nameof(NPCPatches.NPC_marriageDuties_Prefix)),
+               postfix: new HarmonyMethod(typeof(NPCPatches), nameof(NPCPatches.NPC_marriageDuties_Postfix)),
+               transpiler: new HarmonyMethod(typeof(NPCPatches), nameof(NPCPatches.NPC_marriageDuties_Transpiler))
+            );
+
+            harmony.Patch(
+               original: AccessTools.Method(typeof(NPC), nameof(NPC.setUpForOutdoorPatioActivity)),
+               postfix: new HarmonyMethod(typeof(NPCPatches), nameof(NPCPatches.NPC_setUpForOutdoorPatioActivity_Postfix))
             );
 
             harmony.Patch(
@@ -151,16 +159,16 @@ namespace PolyamorySweetLove
                postfix: new HarmonyMethod(typeof(NPCPatches), nameof(NPCPatches.NPC_engagementResponse_Postfix))
             );
 
-            harmony.Patch(
-               original: AccessTools.Method(typeof(NPC), nameof(NPC.spouseObstacleCheck)),
-               prefix: new HarmonyMethod(typeof(NPCPatches), nameof(NPCPatches.NPC_spouseObstacleCheck_Prefix))
-            );
+            //harmony.Patch(
+            //   original: AccessTools.Method(typeof(NPC), nameof(NPC.spouseObstacleCheck)),
+            //   prefix: new HarmonyMethod(typeof(NPCPatches), nameof(NPCPatches.NPC_spouseObstacleCheck_Prefix))
+            //);
 
-            harmony.Patch(
-               original: AccessTools.Method(typeof(NPC), nameof(NPC.playSleepingAnimation)),
-               prefix: new HarmonyMethod(typeof(NPCPatches), nameof(NPCPatches.NPC_playSleepingAnimation_Prefix)),
-               postfix: new HarmonyMethod(typeof(NPCPatches), nameof(NPCPatches.NPC_playSleepingAnimation_Postfix))
-            );
+            //harmony.Patch(
+            //   original: AccessTools.Method(typeof(NPC), nameof(NPC.playSleepingAnimation)),
+            //   prefix: new HarmonyMethod(typeof(NPCPatches), nameof(NPCPatches.NPC_playSleepingAnimation_Prefix)),
+            //   postfix: new HarmonyMethod(typeof(NPCPatches), nameof(NPCPatches.NPC_playSleepingAnimation_Postfix))
+            //);
 
             harmony.Patch(
                original: AccessTools.Method(typeof(NPC), nameof(NPC.GetDispositionModifiedString)),
@@ -318,6 +326,22 @@ namespace PolyamorySweetLove
                prefix: new HarmonyMethod(typeof(FarmerPatches), nameof(FarmerPatches.Farmer_getChildren_Prefix))
             );
 
+            harmony.Patch(
+               original: AccessTools.Method(typeof(Farmer), nameof(Farmer.GetDaysMarried)),
+               prefix: new HarmonyMethod(typeof(FarmerPatches), nameof(FarmerPatches.Farmer_GetDaysMarried_Prefix))
+            );
+
+            harmony.Patch(
+               original: AccessTools.Method(typeof(Farmer), nameof(Farmer.getChildrenCount)),
+               prefix: new HarmonyMethod(typeof(FarmerPatches), nameof(FarmerPatches.Farmer_getChildrenCount_Prefix))
+            );
+
+            // Utility Patches
+            harmony.Patch(
+               original: AccessTools.Method(typeof(Utility), nameof(Utility.CreateDaySaveRandom)),
+               postfix: new HarmonyMethod(typeof(FarmerPatches), nameof(FarmerPatches.Utility_CreateDaySaveRandom_Postfix))
+            );
+
 
             // UI patches
 
@@ -362,6 +386,12 @@ namespace PolyamorySweetLove
                original: AccessTools.GetDeclaredMethods(typeof(Game1)).Where(m => m.Name == "getCharacterFromName" && m.ReturnType == typeof(NPC)).First(),
                prefix: new HarmonyMethod(typeof(Game1Patches), nameof(Game1Patches.getCharacterFromName_Prefix))
             );
+
+            harmony.Patch(
+               original: AccessTools.Method(typeof(Game1), nameof(Game1.getAvailableWeddingEvent)),
+               postfix: new HarmonyMethod(typeof(Game1Patches), nameof(Game1Patches.getAvailableWeddingEvent_Postfix))
+            );
+
             //Child Patch
             harmony.Patch(
              original: AccessTools.DeclaredMethod(typeof(Child), nameof(Child.checkAction)),

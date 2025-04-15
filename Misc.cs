@@ -20,6 +20,7 @@ namespace PolyamorySweetLove
     public partial class ModEntry
     {
         private static Dictionary<string, int> topOfHeadOffsets = new Dictionary<string, int>();
+        public static Event WeddingToday = null;
 
         public static void ReloadSpouses(Farmer farmer)
         {
@@ -37,7 +38,7 @@ namespace PolyamorySweetLove
             SMonitor.Log($"Checking for extra spouses in {farmer.friendshipData.Count()} friends");
             foreach (string friend in farmer.friendshipData.Keys)
             {
-                if (farmer.friendshipData[friend].IsMarried() && friend != farmer.spouse)
+                if (farmer.friendshipData[friend].IsMarried())
                 {
                     var npc = Game1.getCharacterFromName(friend, true);
                     if (npc != null)
@@ -99,17 +100,6 @@ namespace PolyamorySweetLove
         }
         public static void PlaceSpousesInFarmhouse(FarmHouse farmHouse)
         {
-            //string shakeTimer = Helper.Reflection.GetField<string>(__instance, "shakeTimer").GetValue();
-            //farmHouse = Game1.RequireLocation<FarmHouse>(Game1.player.homeLocation.Value);
-            //if (SortSpouseOrder == true)
-            {
-                //spousesortigncodehere
-
-
-
-            }
-
-
             Point porchspot = farmHouse.getPorchStandingSpot();
             Point kitchenspot = farmHouse.getKitchenStandingSpot();
             Point bedspot = farmHouse.getBedSpot();
@@ -1059,6 +1049,94 @@ namespace PolyamorySweetLove
         }*/
         }
 
+        public static void FixSpouseSpawnLocations()
+        {
+            if (!Game1.IsMasterGame)
+                return;
+
+            if (NPCPatches.PatioSpouse != null)
+            {
+                // Wrong patio might have been loaded. Load the correct one and move spouse to correct location for that patio
+                SMonitor.Log($"Patio spouse is {NPCPatches.PatioSpouse.Name}");
+                Game1.getFarm().addSpouseOutdoorArea(NPCPatches.PatioSpouse.Name);
+                NPCPatches.PatioSpouse.setTilePosition(Game1.getFarm().spousePatioSpot);
+                NPCPatches.PatioSpouse = null;
+            }
+
+            Farmer gettingMarriedFarmer = null;
+            string gettingMarriedNPC = null;
+            if (WeddingToday != null)
+            {
+                gettingMarriedFarmer = WeddingToday.farmer;
+                gettingMarriedNPC = gettingMarriedFarmer?.spouse;
+                WeddingToday = null;
+            }
+
+            foreach (GameLocation location in GetAllLocations())
+            {
+                if (location is FarmHouse farmhouse)
+                {
+                    Farmer farmer = farmhouse.owner;
+                    if (farmer == null)
+                        continue;
+
+                    SMonitor.Log($"Checking farmhouse for {farmer.Name}");
+                    Random random = Utility.CreateDaySaveRandom(farmer.UniqueMultiplayerID);
+                    List<NPC> spouses = GetSpouses(farmer, false).Values.ToList();
+                    ShuffleList(ref spouses, random);
+                    foreach (NPC spouse in spouses)
+                    {
+                        if (gettingMarriedFarmer == farmer && gettingMarriedNPC == spouse.Name)
+                        {
+                            SMonitor.Log($"It is {spouse.Name}'s wedding day, staying on porch");
+                        }
+                        else if (gettingMarriedFarmer == farmer && gettingMarriedNPC != null && spouse.Name != gettingMarriedNPC && spouse.currentLocation == Game1.getFarm() && spouse.TilePoint == farmhouse.getPorchStandingSpot())
+                        {
+                            // If current farmer is getting married today, no other spouse can be on the porch
+                            SMonitor.Log($"{spouse.Name} is on the porch on {gettingMarriedNPC}'s wedding day");
+                            Point newPoint = farmhouse.getRandomOpenPointInHouse(random, tries: 100);
+                            if (newPoint != Point.Zero)
+                            {
+                                SMonitor.Log($"Moving {spouse.Name} to {newPoint}");
+                                Game1.warpCharacter(spouse, farmer.homeLocation.Value, newPoint);
+                                spouse.faceDirection(random.Next(4));
+                            }
+                        }
+                        else if (IsInBed(farmhouse, spouse.GetBoundingBox()))
+                        {
+                            // Game code would have placed all bed spouses in the same place. Move them to their spot
+                            Point bedSpot = ModEntry.GetSpouseBedEndPoint(farmhouse, spouse.Name);
+                            SMonitor.Log($"{spouse.Name} is in bed. Moving to {bedSpot}");
+                            spouse.setTilePosition(bedSpot);
+                        }
+                        else
+                        {
+                            // Check if any other spouses are on the same tile
+                            foreach (NPC other in spouses)
+                            {
+                                if (spouse == other)
+                                    continue;
+                                if (spouse.currentLocation == other.currentLocation && spouse.Tile == other.Tile)
+                                {
+                                    SMonitor.Log($"{spouse.Name} is at the same position as {other.Name}");
+                                    Point newPoint = farmhouse.getRandomOpenPointInHouse(random, tries:100);
+                                    if (newPoint != Point.Zero)
+                                    {
+                                        SMonitor.Log($"Moving {other.Name} to {newPoint}");
+                                        if (other.currentLocation == farmhouse)
+                                            other.setTilePosition(newPoint);
+                                        else
+                                            Game1.warpCharacter(other, farmer.homeLocation.Value, newPoint);
+                                        other.faceDirection(random.Next(4));
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         private static bool IsTileOccupied(GameLocation location, Point tileLocation, string characterToIgnore)
         {
             Rectangle tileLocationRect = new Rectangle(tileLocation.X * 64 + 1, tileLocation.Y * 64 + 1, 62, 62);
@@ -1400,13 +1478,16 @@ namespace PolyamorySweetLove
             }
         }
 
-        public static void ShuffleList<T>(ref List<T> list)
+        public static void ShuffleList<T>(ref List<T> list, Random random = null)
         {
+            if (random == null)
+                random = myRand;
+
             int n = list.Count;
             while (n > 1)
             {
                 n--;
-                int k = myRand.Next(n + 1);
+                int k = random.Next(n + 1);
                 var value = list[k];
                 list[k] = list[n];
                 list[n] = value;

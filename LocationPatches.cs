@@ -50,7 +50,7 @@ namespace PolyamorySweetLove
             {
                 if (spouseName == null || !Config.EnableMod)
                     return true;
-                var spouses = ModEntry.GetSpouses(__instance.owner, true);
+                var spouses = ModEntry.GetSpouses(__instance.owner, false);
 
                 if (!spouses.TryGetValue(spouseName, out NPC spouse) || spouse is null || spouse.isMoving() || !ModEntry.IsInBed(__instance, spouse.GetBoundingBox()))
                     return true;
