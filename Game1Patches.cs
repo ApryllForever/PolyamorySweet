@@ -19,5 +19,10 @@ namespace PolyamorySweetLove
             if (EventPatches.startingLoadActors)
                 lastGotCharacter = name;
         }
+
+        public static void getAvailableWeddingEvent_Postfix(Event __result)
+        {
+            ModEntry.WeddingToday = __result;
+        }
     }
 }

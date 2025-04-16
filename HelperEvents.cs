@@ -181,33 +181,41 @@ namespace PolyamorySweetLove
         public static void GameLoop_DayStarted(object sender, DayStartedEventArgs e)
         {
             ResetDivorces();
-            ResetSpouses(Game1.player);
+
+            foreach (Farmer f in Game1.getAllFarmers())
+            {
+                ResetSpouses(f, true);
+                var spouses = GetSpouses(f, false).Keys;
+                foreach (string s in spouses)
+                {
+                    SMonitor.Log($"{f.Name} is married to {s}");
+                }
+            }
+            
             BabyTonight = false;
             BabyTonightSpouse = String.Empty;
             AphroditeFlowerGiven = false;
             PatioPlacement = false;
             PorchPlacement = false;
 
+            FixSpouseSpawnLocations();
+        }
 
-            if (Game1.IsMasterGame)
+        public static void GameLoop_DayEnding(object sender, DayEndingEventArgs e)
+        {
+            // Encountered a situation where my primary spouse got changed from my engaged spouse
+            // That is a problem as that will stop the wedding from occurring
+            // Since I'm unsure what caused it, I'm slapping a band-aid check here
+            foreach (Farmer farmer in Game1.getAllFarmers())
             {
-                foreach (GameLocation location in GetAllLocations())
+                foreach (string npc in farmer.friendshipData.Keys)
                 {
-                    if (location is FarmHouse fh)
+                    if (farmer.friendshipData[npc].IsEngaged())
                     {
-                        PlaceSpousesInFarmhouse(fh);
+                        SMonitor.Log($"Setting primary spouse for {farmer} to engaged NPC {npc} (was {farmer.spouse})");
+                        farmer.spouse = npc;
+                        break;
                     }
-                }
-
-                Game1.getFarm().addSpouseOutdoorArea(Game1.player.spouse == null ? "" : Game1.player.spouse);
-                farmHelperSpouse = GetRandomSpouse(Game1.MasterPlayer);
-            }
-            foreach (Farmer f in Game1.getAllFarmers())
-            {
-                var spouses = GetSpouses(f, true).Keys;
-                foreach (string s in spouses)
-                {
-                    SMonitor.Log($"{f.Name} is married to {s}");
                 }
             }
         }
@@ -226,7 +234,7 @@ namespace PolyamorySweetLove
                     if (fh.owner == null)
                         continue;
 
-                    List<string> allSpouses = GetSpouses(fh.owner, true).Keys.ToList();
+                    List<string> allSpouses = GetSpouses(fh.owner, false).Keys.ToList();
                     List<string> bedSpouses = ReorderSpousesForSleeping(allSpouses.FindAll((s) => Config.RoommateRomance || !fh.owner.friendshipData[s].RoommateMarriage));
 
                     using (IEnumerator<NPC> characters = fh.characters.GetEnumerator())

@@ -25,6 +25,7 @@ namespace PolyamorySweetLove
         private static IMonitor Monitor;
         private static ModConfig Config;
         private static IModHelper Helper;
+        public static NPC PatioSpouse = null;
 
         // call this method from your Entry class
         public static void Initialize(IMonitor monitor, ModConfig config, IModHelper helper)
@@ -241,38 +242,277 @@ namespace PolyamorySweetLove
             }
         }
 
-        /*
-        public static bool NPC_marriageDuties_Prefix()
-        {
-            if(!Config.EnableMod)
-            {
-                return true;
-            }
-            return true;
-        } */
-
-
         public static void NPC_marriageDuties_Postfix(NPC __instance)
         {
-
-
-
-
-
-
             try
             {
                 if (ModEntry.tempOfficialSpouse == __instance)
                 {
                     ModEntry.tempOfficialSpouse = null;
                 }
-                return; 
-                
+                return;
+
             }
             catch (Exception ex)
             {
                 Monitor.Log($"Failed in fucking with temp spouse setting in {nameof(NPC_marriageDuties_Postfix)}:\n{ex}", LogLevel.Error);
             }
+        }
+
+        public static IEnumerable<CodeInstruction> NPC_marriageDuties_Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+        {
+            // Splitting this transpiler into 3 functions, 1 for each task
+
+            List<CodeInstruction> instructionsList = new(instructions);
+            marriageDuties_OnePatioSpouse(instructionsList, generator);
+            marriageDuties_WinterPatio(instructionsList, generator);
+            marriageDuties_AboutToGiveBirthDialogue(instructionsList, generator);
+
+            return instructionsList.AsEnumerable();
+        }
+
+        public static void marriageDuties_OnePatioSpouse(List<CodeInstruction> instructionsList, ILGenerator generator)
+        {
+            /*
+                Code this is modifying:
+                if (!Game1.isRaining && !Game1.IsWinter && Game1.shortDayNameFromDayOfSeason(Game1.dayOfMonth).Equals("Sat") && spouse == Game1.MasterPlayer && !base.Name.Equals("Krobus"))
+                {
+                    setUpForOutdoorPatioActivity();
+                    return;
+                }
+                
+                Changing to approximately this:
+                if (!Game1.isRaining && !Game1.IsWinter && Game1.shortDayNameFromDayOfSeason(Game1.dayOfMonth).Equals("Sat") && spouse == Game1.MasterPlayer && !base.Name.Equals("Krobus") && NPCPatches.PatioSpouse == null)
+                {
+                    setUpForOutdoorPatioActivity();
+                    return;
+                }
+
+                IL Code looks like this. I'm searching for IL_0404 and IL_0405, and adding a branch before them to skip the call if PatioSpouse is set.
+
+                IL_03c6: ldsfld bool StardewValley.Game1::isRaining
+		        IL_03cb: brtrue.s IL_040b
+
+		        IL_03cd: call bool StardewValley.Game1::get_IsWinter()
+		        IL_03d2: brtrue.s IL_040b
+
+                IL_03d4: ldsfld int32 StardewValley.Game1::dayOfMonth
+		        IL_03d9: call string StardewValley.Game1::shortDayNameFromDayOfSeason(int32)
+		        IL_03de: ldstr "Sat"
+		        IL_03e3: callvirt instance bool [System.Runtime]System.String::Equals(string)
+		        IL_03e8: brfalse.s IL_040b
+
+		        IL_03ea: ldloc.0
+		        IL_03eb: call class StardewValley.Farmer StardewValley.Game1::get_MasterPlayer()
+		        IL_03f0: bne.un.s IL_040b
+
+		        // this.setUpForOutdoorPatioActivity();
+		        IL_03f2: ldarg.0
+		        IL_03f3: call instance string StardewValley.Character::get_Name()
+		        IL_03f8: ldstr "Krobus"
+		        IL_03fd: callvirt instance bool [System.Runtime]System.String::Equals(string)
+		        IL_0402: brtrue.s IL_040b
+
+		        IL_0404: ldarg.0
+		        IL_0405: call instance void StardewValley.NPC::setUpForOutdoorPatioActivity()
+		        // int num = 12;
+		        IL_040a: ret
+            */
+            MethodInfo patioMethod = AccessTools.Method(typeof(NPC), nameof(NPC.setUpForOutdoorPatioActivity));
+            FieldInfo? patioSpouseField = typeof(NPCPatches).GetField(nameof(PatioSpouse));
+            int insertIndex = -1;
+            System.Reflection.Emit.Label? branchLabel = null;
+
+            // Find the setUpForOutdoorPatioActivity() call
+            for (int i = 0; i < instructionsList.Count - 1; i++)
+            {
+                var first = instructionsList[i];
+                var second = instructionsList[i + 1];
+
+                if (first.IsLdarg(0) && second.Calls(patioMethod))  // "ldarg.0" and "call instance void StardewValley.NPC::setUpForOutdoorPatioActivity()"
+                {
+                    insertIndex = i;
+                    break;
+                }
+
+                if (first.Branches(out System.Reflection.Emit.Label? label))  // Keeping track of the last brtrue.s destination
+                    branchLabel = label;
+            }
+
+            if (insertIndex >= 0 && branchLabel.HasValue && patioSpouseField != null)
+            {
+                // Insert a "branch if PatioSpouse is not null"
+                List<CodeInstruction> newInstructions = new()
+                {
+                    new CodeInstruction(OpCodes.Ldsfld, patioSpouseField),  // Load PatioSpouse onto stack
+                    new CodeInstruction(OpCodes.Brtrue, branchLabel)  // Branch to branchLabel if PatioSpouse != null
+                };
+                instructionsList.InsertRange(insertIndex, newInstructions);
+            }
+            else
+                Monitor.Log($"Could not apply patio spouse patch in {nameof(NPC_marriageDuties_Transpiler)}", LogLevel.Warn);
+        }
+
+        public static bool WinterPatio()
+        {
+            return Config.WinterPatio;
+        }
+        
+        public static void marriageDuties_WinterPatio(List<CodeInstruction> instructionsList, ILGenerator generator)
+        {
+            MethodInfo isWinter = AccessTools.PropertyGetter(typeof(Game1), nameof(Game1.IsWinter));
+            MethodInfo configWinterPatio = SymbolExtensions.GetMethodInfo(() => WinterPatio());
+            bool applied = false;
+            for (int i = 0; i < instructionsList.Count - 1; i++)
+            {
+                // Searching for
+                // IL_03cd: call bool StardewValley.Game1::get_IsWinter()
+                // IL_03d2: brtrue.s IL_040b
+                var first = instructionsList[i];
+                var second = instructionsList[i + 1];
+
+                if (first.Calls(isWinter) && second.Branches(out System.Reflection.Emit.Label? _))
+                {
+                    System.Reflection.Emit.Label label = generator.DefineLabel();
+                    instructionsList[i + 2].labels.Add(label);  // Add new branching label to instruction following the isWinter check
+
+                    instructionsList.InsertRange(i, new List<CodeInstruction>()
+                    {
+                        new CodeInstruction(OpCodes.Call, configWinterPatio),  // Get value from Config.WinterPatio
+                        new CodeInstruction(OpCodes.Brtrue, label)  // Branch if value is true (skipping the isWinter check)
+                    });
+                    applied = true;
+                    break;
+                }
+            }
+
+            if (!applied)
+                Monitor.Log($"Could not apply winter patio patch in {nameof(NPC_marriageDuties_Transpiler)}", LogLevel.Warn);
+        }
+
+        public static void marriageDuties_AboutToGiveBirthDialogue(List<CodeInstruction> instructionsList, ILGenerator generator)
+        {
+            /*
+            IL_0772: ldarg.0
+	        IL_0773: call instance bool StardewValley.NPC::isAdoptionSpouse()
+	        IL_0778: brfalse IL_080c
+            */
+            MethodInfo isAdoptionSpouse = AccessTools.Method(typeof(NPC), nameof(NPC.isAdoptionSpouse));
+            //MethodInfo configGayPregnancies = SymbolExtensions.GetMethodInfo(() => Config.GayPregnancies);
+            MethodInfo createRandom = AccessTools.Method(typeof(Utility), nameof(Utility.CreateDaySaveRandom));
+            MethodInfo hookFunction = AccessTools.Method(typeof(NPCPatches), nameof(NPCPatches.marriageDuties_AboutToGiveBirthDialogue_hook));
+            object localVariableIndexRandom = null;
+            for (int i = 0; i < instructionsList.Count - 1; i++)
+            {
+                var first = instructionsList[i];
+                var second = instructionsList[i + 1];
+
+                if (first.Calls(createRandom) && second.IsStloc())
+                {
+                    localVariableIndexRandom = getStLocIndex(second);
+                }
+
+                if (first.Calls(isAdoptionSpouse) && second.Branches(out System.Reflection.Emit.Label? branchLabel))
+                {
+                    if (localVariableIndexRandom == null)
+                    {
+                        Monitor.Log($"Could not find index of random in {nameof(NPC_marriageDuties_Transpiler)}", LogLevel.Warn);
+                        return;
+                    }
+
+                    System.Reflection.Emit.Label label = generator.DefineLabel();
+                    instructionsList[i - 1].labels.Add(label);
+                    instructionsList.InsertRange(i-1, new List<CodeInstruction>()
+                    {
+                        new CodeInstruction(OpCodes.Ldarg, 0),  // Load npc (this)
+                        new CodeInstruction(OpCodes.Ldloc, localVariableIndexRandom),  // Load random
+                        new CodeInstruction(OpCodes.Call, hookFunction),  // Call bool marriageDuties_AboutToGiveBirthDialogue_hook(npc, random)
+                        new CodeInstruction(OpCodes.Brfalse, label),  // If hook function returns false, branch to line after next return (Ret)
+                        new CodeInstruction(OpCodes.Ret)  // return
+                    });
+                    //instructionsList.InsertRange(i, new List<CodeInstruction>()
+                    //{
+                    //    new CodeInstruction(OpCodes.Call, configGayPregnancies),  // Get value from Config.GayPregnancies
+                    //    new CodeInstruction(OpCodes.Brtrue, branchLabel)  // Branch if value is true (skipping the isAdoptionSpouse dialogue)
+                    //});
+                    return;
+                }
+            }
+
+            // We only reach this if there was never a match
+            Monitor.Log($"Could not apply pregnant dialogue patch in {nameof(NPC_marriageDuties_Transpiler)}", LogLevel.Warn);
+        }
+
+        /// <summary>
+        /// Called by the marriageDuties transpiler if the NPC is soon to give birth (called before other dialogue checks)
+        /// </summary>
+        /// <param name="npc"></param>
+        /// <returns>true if marriageDuties should return after this function ends</returns>
+        public static bool marriageDuties_AboutToGiveBirthDialogue_hook(NPC npc, Random random)
+        {
+            try
+            {
+                Farmer farmer = npc.getSpouse();
+                if (farmer == null)
+                    return false;
+
+                if (npc.Gender != farmer.Gender)
+                    return false;
+
+                if (!Config.GayPregnancies)
+                    return false;
+
+                FarmHouse farmHouse = Game1.RequireLocation<FarmHouse>(farmer.homeLocation.Value);
+
+                if (npc.Gender != Gender.Female || Config.ImpregnatingFemmeNPC)
+                {
+                    // Honey, did you know you're pregnant? / We're pregnant
+                    npc.setTilePosition(farmHouse.getKitchenStandingSpot());
+                    if (!npc.spouseObstacleCheck(new MarriageDialogueReference("Strings\\StringsFromCSFiles", "NPC.cs.4446", true), farmHouse))
+                    {
+                        if (random.NextBool())
+                        {
+                            npc.currentMarriageDialogue.Clear();
+                        }
+
+                        npc.currentMarriageDialogue.Add(random.NextBool() ? new MarriageDialogueReference("Strings\\StringsFromCSFiles", "NPC.cs.4447", true, farmer.displayName) : new MarriageDialogueReference("Strings\\StringsFromCSFiles", "NPC.cs.4448", false, "%endearment"));
+                    }
+
+                    return true;
+                }
+
+                // I'm pregnant, isn't that great
+                npc.setTilePosition(farmHouse.getKitchenStandingSpot());
+                if (!npc.spouseObstacleCheck(random.NextBool() ? new MarriageDialogueReference("Strings\\StringsFromCSFiles", "NPC.cs.4442", false) : new MarriageDialogueReference("Strings\\StringsFromCSFiles", "NPC.cs.4443", false), farmHouse))
+                {
+                    if (random.NextBool())
+                    {
+                        npc.currentMarriageDialogue.Clear();
+                    }
+
+                    npc.currentMarriageDialogue.Add(random.NextBool() ? new MarriageDialogueReference("Strings\\StringsFromCSFiles", "NPC.cs.4444", false, farmer.displayName) : new MarriageDialogueReference("Strings\\StringsFromCSFiles", "NPC.cs.4445", false, "%endearment"));
+                }
+
+                return true;
+            }
+            catch (Exception e)
+            {
+                Monitor.Log($"Failed in {nameof(marriageDuties_AboutToGiveBirthDialogue_hook)}:\n{e}", LogLevel.Error);
+                return false;
+            }
+        }
+
+        public static object getStLocIndex(CodeInstruction code)
+        {
+            if (!code.IsStloc())
+                return null;
+            if (code.operand != null)
+                return code.operand;
+            if (code.opcode == OpCodes.Stloc_0) return 0;
+            if (code.opcode == OpCodes.Stloc_1) return 1;
+            if (code.opcode == OpCodes.Stloc_2) return 2;
+            if (code.opcode == OpCodes.Stloc_3) return 3;
+            return null;
         }
 
         public static bool NPC_engagementResponse_Prefix(NPC __instance, Farmer who, ref bool asRoommate)
@@ -613,7 +853,7 @@ namespace PolyamorySweetLove
         }
           */
 
-        public static bool NPC_tryToReceiveActiveObject_Prefix(NPC __instance, ref Farmer who, bool probe, Dictionary<string, string> ___dialogue, ref bool __result, ref string __state)
+            public static bool NPC_tryToReceiveActiveObject_Prefix(NPC __instance, ref Farmer who, bool probe, Dictionary<string, string> ___dialogue, ref bool __result, ref string __state)
         {
             try
             {
@@ -991,7 +1231,7 @@ namespace PolyamorySweetLove
 
 
                             //if (c.Equals(who.spouse) || c.Equals(roomie))
-                            if (ModEntry.GetSpouses(who, true).ContainsKey(__instance.Name))
+                            if (ModEntry.GetSpouses(who, false).ContainsKey(__instance.Name))
                             {
 
                                 {
@@ -1107,7 +1347,7 @@ namespace PolyamorySweetLove
                         }
                         if (__instance.IsVillager)
                         {
-                            if (ModEntry.GetSpouses(who, true).ContainsKey(__instance.Name))
+                            if (ModEntry.GetSpouses(who, false).ContainsKey(__instance.Name))
                             {
                                 who.changeFriendship(25, __instance);
                                 who.reduceActiveItemByOne();
@@ -1177,13 +1417,13 @@ namespace PolyamorySweetLove
             return true;
         }
 
-        public static void NPC_tryToReceiveActiveObject_Postfix(string __state)
+        public static void NPC_tryToReceiveActiveObject_Postfix(ref Farmer who, string __state)
         {
             try
             {
                 if (__state != null)
                 {
-                    Game1.player.spouse = __state;
+                    who.spouse = __state;
                 }
             }
             catch (Exception ex)
@@ -1258,6 +1498,18 @@ namespace PolyamorySweetLove
             catch (Exception ex)
             {
                 Monitor.Log($"Failed in {nameof(NPC_playSleepingAnimation_Postfix)}:\n{ex}", LogLevel.Error);
+            }
+        }
+
+        public static void NPC_setUpForOutdoorPatioActivity_Postfix(NPC __instance)
+        {
+            try
+            {
+                PatioSpouse = __instance;
+            }
+            catch (Exception ex)
+            {
+                Monitor.Log($"Failed in {nameof(NPC_setUpForOutdoorPatioActivity_Postfix)}:\n{ex}", LogLevel.Error);
             }
         }
 

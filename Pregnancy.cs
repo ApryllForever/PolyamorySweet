@@ -44,7 +44,7 @@ namespace PolyamorySweetLove
                 return false;
             }
 
-            List<NPC> allSpouses = GetSpouses(Game1.player, true).Values.ToList();
+            List<NPC> allSpouses = GetSpouses(Game1.player, false).Values.ToList();
 
             ShuffleList(ref allSpouses);
 
@@ -142,9 +142,6 @@ namespace PolyamorySweetLove
                 List<Child> kids = f.getChildren();
                 int maxChildren = childrenAPI == null ? Config.MaxChildren : childrenAPI.GetMaxChildren();
                 FarmHouse fh = Utility.getHomeOfFarmer(f);
-
-                // bool can = spouse.daysAfterLastBirth <= 0 && fh.cribStyle.Value > 0 && fh.upgradeLevel >= 2 && friendship.DaysUntilBirthing < 0 && heartsWithSpouse >= 10 && friendship.DaysMarried >= 7 && (kids.Count < maxChildren);
-                //this was the old preg check
                 long spouseID = 0;
                 
                 if (Game1.IsMultiplayer)
@@ -162,20 +159,21 @@ namespace PolyamorySweetLove
                         spouseID =   Game1.player.team.GetSpouse(Game1.player.UniqueMultiplayerID).Value;
                     }
                 }
-
-                bool? flag = spouse?.canGetPregnant();
-
-                //if(Config.GayPregnancies) Classic example of me forgetting what I was doing halfway through...
-               // {
-                ///    flag = true;
-               // }
-
-                SMonitor.Log($"Checking ability to get pregnant: {spouse.Name} {flag}:{(fh.cribStyle.Value > 0 ? $" no crib" : "")}{(Utility.getHomeOfFarmer(f).upgradeLevel < 2 ? $" house level too low {Utility.getHomeOfFarmer(f).upgradeLevel}" : "")}{(friendship.DaysMarried < 7 ? $", not married long enough {friendship.DaysMarried}" : "")}{(friendship.DaysUntilBirthing >= 0 ? $", already pregnant (gives birth in: {friendship.DaysUntilBirthing})" : "")}");
-
+                
                 if (!farmerlist.Contains(spouse.Name))
                 {
-                    if (flag.HasValue && flag.GetValueOrDefault() && Game1.player.currentLocation == Game1.getLocationFromName(Game1.player.homeLocation.Value) && r.NextDouble() < Config.PercentChanceForBirthingQuestion && GameStateQuery.CheckConditions(spouse.GetData()?.SpouseWantsChildren))
-                    //if (flag.HasValue && flag.GetValueOrDefault() && Game1.player.currentLocation == Game1.getLocationFromName(Game1.player.homeLocation.Value) && r.NextDouble() < Config.PercentChanceForBirthingQuestion && GameStateQuery.CheckConditions(spouse.GetData()?.SpouseWantsChildren))
+                    // This is largely a copy of NPC.canGetPregnant() with a modified max children check
+                    bool canGetPregnant = friendship.DaysUntilBirthing < 0;  // Is not currently pregnant
+                    canGetPregnant &= fh.cribStyle.Value > 0;  // Farmhouse has crib
+                    canGetPregnant &= fh.upgradeLevel >= 2;  // Farmhouse is at least at 2nd upgrade (to have a crib)
+                    canGetPregnant &= heartsWithSpouse >= 10;  // Have at least 10 hearts
+                    canGetPregnant &= friendship.DaysMarried >= 7;  // Married for at least a week
+                    canGetPregnant &= kids.Count < maxChildren;  // Have less than configured max children
+                    canGetPregnant &= !f.divorceTonight.Value;  // Not getting divorced tonight
+
+                    SMonitor.Log($"Checking ability to get pregnant: {spouse.Name} {canGetPregnant}:{(fh.cribStyle.Value > 0 ? "" : $" no crib")}{(Utility.getHomeOfFarmer(f).upgradeLevel < 2 ? $" house level too low {Utility.getHomeOfFarmer(f).upgradeLevel}" : "")}{(friendship.DaysMarried < 7 ? $", not married long enough {friendship.DaysMarried}" : "")}{(friendship.DaysUntilBirthing >= 0 ? $", already pregnant (gives birth in: {friendship.DaysUntilBirthing})" : "")}");
+
+                    if (canGetPregnant && Game1.player.currentLocation == Game1.getLocationFromName(Game1.player.homeLocation.Value) && r.NextDouble() < Config.PercentChanceForBirthingQuestion && GameStateQuery.CheckConditions(spouse.GetData()?.SpouseWantsChildren))
                     {
                         SMonitor.Log("Requesting a baby!");
                         lastPregnantSpouse = spouse;
@@ -183,9 +181,7 @@ namespace PolyamorySweetLove
                         return false;
                     }
                 }
-
-                else
-                if (spouseID != 0)
+                else if (spouseID != 0)
                 {
 
                     if (Game1.otherFarmers.TryGetValue(spouseID, out var farmereposa))
@@ -201,15 +197,6 @@ namespace PolyamorySweetLove
                         }
                     }
                 }
-    //pre 1.3 way
-                //SMonitor.Log($"Checking ability to get pregnant: {spouse.Name} {flag}:{(fh.cribStyle.Value > 0 ? $" no crib" : "")}{(Utility.getHomeOfFarmer(f).upgradeLevel < 2 ? $" house level too low {Utility.getHomeOfFarmer(f).upgradeLevel}" : "")}{(friendship.DaysMarried < 7 ? $", not married long enough {friendship.DaysMarried}" : "")}{(friendship.DaysUntilBirthing >= 0 ? $", already pregnant (gives birth in: {friendship.DaysUntilBirthing})" : "")}");
-               // if (can && Game1.player.currentLocation == Game1.getLocationFromName(Game1.player.homeLocation.Value) && myRand.NextDouble() < 0.05)
-               // {
-                //    SMonitor.Log("Requesting a baby!");
-                 //   lastPregnantSpouse = spouse;
-                  //  __result = new QuestionEvent(1);
-                  //  return false;
-               // }
             }
             return true;
         }
