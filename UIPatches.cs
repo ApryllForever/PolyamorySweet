@@ -158,7 +158,7 @@ namespace PolyamorySweetLove
                // bool charClick = (bool)Helper.Reflection.GetMethod(__instance, "isCharacterSlotClickable");
 
                 int iq = 0;
-                bool charClick = Helper.Reflection.GetMethod(__instance, "isCharacterSlotClickable").Invoke<bool>(iq);
+                bool charClick = __instance.isCharacterSlotClickable(iq);
 
 
                 SocialEntry entry;
