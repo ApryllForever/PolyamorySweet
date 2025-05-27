@@ -5,7 +5,9 @@ using SpaceShared.APIs;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
+using StardewValley.Delegates;
 using StardewValley.Locations;
+using StardewValley.Triggers;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -25,9 +27,9 @@ namespace PolyamorySweetLove
 
             sc.RegisterSerializerType(typeof(LantanaTemple));
 
-           // sc.RegisterCustomProperty(typeof(NPC), "WeddingDate", typeof(int), AccessTools.Method(typeof (NPC_WeddingDate), nameof(NPC_WeddingDate.WeddingDate)), AccessTools.Method(typeof(NPC_WeddingDate), nameof(NPC_WeddingDate.set_WeddingDate)));
+            // sc.RegisterCustomProperty(typeof(NPC), "WeddingDate", typeof(int), AccessTools.Method(typeof (NPC_WeddingDate), nameof(NPC_WeddingDate.WeddingDate)), AccessTools.Method(typeof(NPC_WeddingDate), nameof(NPC_WeddingDate.set_WeddingDate)));
 
-          
+            TriggerActionManager.RegisterAction("Mermaid_Hug", ModEntry.Hug);
 
             // get Generic Mod Config Menu's API (if it's installed)
             var configMenu = Helper.ModRegistry.GetApi<IGenericModConfigMenuApi>("spacechase0.GenericModConfigMenu");
@@ -220,6 +222,54 @@ namespace PolyamorySweetLove
             }
         }
 
+        public static bool Hug(string[] args, TriggerActionContext context, out string error)
+        {
+            if (!ArgUtility.TryGet(args, 1, out string name, out error, allowBlank: false))
+                return false;
+
+
+            NPC npc = Game1.getCharacterFromName(name);
+           // name = npc.Name;
+            int spouseFrame = 28;
+
+
+            bool flip = (npc.FacingDirection == 3);
+
+            ModEntry.SMonitor.Log($"Can hug for Dialogue {npc.Name}");
+
+            int delay = Game1.IsMultiplayer ? 1000 : 1000;
+            npc.movementPause = delay;
+            npc.Sprite.setCurrentAnimation(new List<FarmerSprite.AnimationFrame>
+                    {
+                        new FarmerSprite.AnimationFrame(spouseFrame, delay, false, flip, new AnimatedSprite.endOfAnimationBehavior(npc.haltMe), true)
+                    }
+            );
+
+            ModEntry.SMonitor.Log($"Hugging {npc.Name}");
+
+            ModEntry.mp.broadcastSprites(npc.currentLocation, new TemporaryAnimatedSprite[]
+           {
+                    new TemporaryAnimatedSprite("LooseSprites\\emojis", new Rectangle(0, 0, 9, 9), 2000f, 1, 0, new Vector2(npc.Tile.X, npc.Tile.Y) * 64f + new Vector2(16f, -64f), false, false, 1f, 0f, Color.White, 4f, 0f, 0f, 0f, false)
+                    {
+                        motion = new Vector2(0f, -0.5f),
+                        alphaFade = 0.01f
+                    }
+           });
+
+
+            Game1.player.exhausted.Value = false;
+            npc.hasBeenKissedToday.Value = true;
+            npc.Sprite.UpdateSourceRect();
+
+            int playerFaceDirection = 1;
+            if ( ( flip))
+            {
+                playerFaceDirection = 3;
+            }
+            Game1.player.PerformKiss(playerFaceDirection);
+
+            return true;
+        }
 
         public static void GameLoop_OneSecondUpdateTicked(object sender, OneSecondUpdateTickedEventArgs e)
         {
