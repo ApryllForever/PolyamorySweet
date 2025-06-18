@@ -1540,10 +1540,7 @@ namespace PolyamorySweetLove
             if (force || NPC.checkTileOccupancyForSpouse(currentLocation, spouse.Tile, spouse.Name))
             {
                 FarmHouse farmHouse = Game1.RequireLocation<FarmHouse>(Game1.player.homeLocation.Value);
-
-
                 Game1.warpCharacter(spouse, "FarmHouse", ModEntry.GetSpouseBedPosition(farmHouse, spouse.Name));  //Using my method for bed position
-
 
                 spouse.faceDirection(1);
                 spouse.currentMarriageDialogue.Clear();
@@ -1551,16 +1548,6 @@ namespace PolyamorySweetLove
                 spouse.shouldSayMarriageDialogue.Value = true;
                 return true;
             }
-           /* else
-            {
-                FarmHouse farmHouse = Game1.RequireLocation<FarmHouse>(Game1.player.homeLocation.Value);
-                Game1.warpCharacter(spouse, "FarmHouse", farmHouse.getSpouseBedSpot(spouse.Name));
-                spouse.faceDirection(1);
-                spouse.currentMarriageDialogue.Clear();
-                spouse.currentMarriageDialogue.Add(backToBedMessage);
-                spouse.shouldSayMarriageDialogue.Value = true;
-                return true;
-            }*/
             return false;
         }
 

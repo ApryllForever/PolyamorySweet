@@ -120,7 +120,7 @@ namespace PolyamorySweetLove
                 {
                     return true;
                 }
-                if (Game1.CurrentEvent == null && who.CurrentItem != null && who.CurrentItem.ParentSheetIndex == 801 && !__instance.isEngaged() && !who.isEngaged())
+                if (Game1.CurrentEvent == null && who.CurrentItem != null && who.CurrentItem.ParentSheetIndex == 801 && !Game1.player.isEngaged() && !who.isEngaged())
                 {
                     who.Halt();
                     who.faceGeneralDirection(__instance.getStandingPosition(), 0, false);
@@ -129,13 +129,56 @@ namespace PolyamorySweetLove
                     {
                         if (answer == "Yes")
                         {
+                            //ModEntry.ActiveFarmerProposal = true;
+                           // ModEntry.proposalReceiver = __instance;
+                           // ModEntry.proposalSender = Game1.player;
+
                             who.team.SendProposal(__instance, ProposalType.Marriage, who.CurrentItem.getOne());
                             Game1.activeClickableMenu = new PendingProposalDialog();
+
+                            //who.team.SendProposal(__instance, ProposalType.Marriage, who.CurrentItem.getOne());
+                            //Game1.activeClickableMenu = new MermaidPendingProposalDialog();
+
+                            //ModEntry.ActiveFarmerProposal = true;
+                        }
+                    }, null);
+
+                 
+
+
+                    __result = true;
+                    return false;
+                }
+                /*
+                 * 
+                 * Ceres Pendant is not necessary currently, will not work. Was going to be a farmer wedding item; looking more into working with the vanilla code
+                 * 
+                if (Game1.CurrentEvent == null && who.CurrentItem != null && who.CurrentItem.Name == "Ceres Pendant" && !Game1.player.isEngaged() && !who.isEngaged())
+                {
+                    who.Halt();
+                    who.faceGeneralDirection(__instance.getStandingPosition(), 0, false);
+                    string question2 = Game1.content.LoadString("Strings\\UI:AskToMarry_" + (__instance.IsMale ? "Male" : "Female"), __instance.Name);
+                    location.createQuestionDialogue(question2, location.createYesNoResponses(), delegate (Farmer _, string answer)
+                    {
+                        if (answer == "Yes")
+                        {
+                             ModEntry.ActiveFarmerProposal = true;
+                             ModEntry.proposalReceiver = __instance;
+                             ModEntry.proposalSender = Game1.player;
+
+                            who.team.SendProposal(__instance, ProposalType.Gift, who.ActiveObject.getOne());
+                            Game1.activeClickableMenu = new PendingProposalDialog();
+
+
                         }
                     }, null);
                     __result = true;
                     return false;
                 }
+                */
+
+
+
             }
             catch (Exception ex)
             {
@@ -163,11 +206,6 @@ namespace PolyamorySweetLove
                     {
                         if (aspouse is null)
                             aspouse = spouse.Key;
-                       // if (__instance.friendshipData.TryGetValue(spouse.Key, out var f) && f.IsEngaged())  //Angel of the Morning This is in hopes of fixing the post-proposal house crash
-                        //{
-                         //   __result = spouse.Key;
-                        //    break;
-                       // }
                     }
                     if (__result is null && aspouse is not null)
                     {
@@ -199,11 +237,6 @@ namespace PolyamorySweetLove
                     {
                         if (aspouse is null)
                             aspouse = spouse.Value;
-                       // if (__instance.friendshipData[spouse.Key].IsEngaged()) Angel of the Morning trying to fix post proposal bug
-                       /// {
-                        //    __result = spouse.Value;
-                          //  break;
-                       // }
                     }
                     if (__result is null && aspouse is not null)
                     {
@@ -311,5 +344,114 @@ namespace PolyamorySweetLove
                 Monitor.Log($"Failed in {nameof(Utility_CreateDaySaveRandom_Postfix)}:\n{ex}", LogLevel.Error);
             }
         }
+
+
+
+ //* 
+ //* This is something I am expirimenting on for errors in Multiplayer weddings.
+
+public static bool FarmerTeam_handleIncomingProposal_Prefix(Proposal proposal, FarmerTeam __instance, ref bool __result)
+        {
+           
+
+            if (!Game1.IsMultiplayer)
+            {
+                return true;
+            }
+
+            if (proposal.proposalType.Value == ProposalType.Marriage)
+            {
+                string additionalVar = "";
+                string responseYes = "";
+                string responseNo = "";
+                string questionKey = "";
+
+                if ( Game1.player.isEngaged())
+                {
+                    proposal.response.Value = ProposalResponse.Rejected;
+                    proposal.responseMessageKey.Value = ModEntry.genderedKey("Strings\\UI:AskedToMarry_NotSingle", Game1.player);
+                    __result = true;
+                    return false;
+                }
+
+                questionKey = "Strings\\UI:AskedToMarry";
+                responseYes = "Strings\\UI:AskedToMarry_Accepted";
+                responseNo = "Strings\\UI:AskedToMarry_Rejected";
+
+                questionKey = ModEntry.genderedKey(questionKey, proposal.sender.Value);
+                if (responseYes != null)
+                {
+                    responseYes = ModEntry.genderedKey(responseYes, Game1.player);
+                }
+                if (responseNo != null)
+                {
+                    responseNo = ModEntry.genderedKey(responseNo, Game1.player);
+                }
+
+
+                string question = Game1.content.LoadString(questionKey, proposal.sender.Value.Name);
+                Game1.currentLocation.createQuestionDialogue(question, Game1.currentLocation.createYesNoResponses(), delegate (Farmer _, string answer)
+                {
+                    if (proposal.canceled.Value)
+                    {
+                        Game1.drawObjectDialogue(Game1.content.LoadString("Strings\\UI:ProposalWithdrawn", proposal.sender.Value.Name));
+                        proposal.response.Value = ProposalResponse.Rejected;
+                        proposal.responseMessageKey.Value = responseNo;
+                    }
+                    else if (answer == "Yes")
+                    {
+                        proposal.response.Value = ProposalResponse.Accepted;
+                        proposal.responseMessageKey.Value = responseYes;
+                        if ( proposal.proposalType.Value == ProposalType.Marriage)
+                        {
+                            Item value = proposal.gift.Value;
+                            proposal.gift.Value = null;
+                            value = Game1.player.addItemToInventory(value);
+                            if (value != null)
+                            {
+                                Game1.currentLocation.debris.Add(new Debris(value, Game1.player.Position));
+                            }
+                       
+                            Friendship friendship2 = __instance.GetFriendship(proposal.sender.Value.UniqueMultiplayerID, Game1.player.UniqueMultiplayerID);
+                            friendship2.Status = FriendshipStatus.Engaged;
+                            friendship2.Proposer = proposal.sender.Value.UniqueMultiplayerID;
+                            WorldDate worldDate2 = new WorldDate(Game1.Date);
+                            worldDate2.TotalDays += 3;
+                            while (!Game1.canHaveWeddingOnDay(worldDate2.DayOfMonth, worldDate2.Season))
+                            {
+                                worldDate2.TotalDays++;
+                            }
+                            friendship2.WeddingDate = worldDate2;
+                            Game1.drawObjectDialogue(Game1.content.LoadString("Strings\\UI:PlayerWeddingArranged"));
+                            Game1.Multiplayer.globalChatInfoMessage("Engaged", Game1.player.Name, proposal.sender.Value.Name);
+                        }
+
+                        //ModEntry.proposalSender = proposal.sender.Value;
+                        //ModEntry.proposalReceiver = proposal.receiver.Value;
+
+                        Game1.player.doEmote(20);
+                    }
+                    else
+                    {
+                        proposal.response.Value = ProposalResponse.Rejected;
+                        proposal.responseMessageKey.Value = responseNo;
+                    }
+                });
+
+                __result = true;
+                return false;
+            }
+
+            return true;
+        }
+
+
+        
+
+
+
+
+
+
     }
 }

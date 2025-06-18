@@ -201,6 +201,17 @@ namespace PolyamorySweetLove
             PorchPlacement = false;
 
             FixSpouseSpawnLocations();
+
+            //
+            //The purpose of this below was for starting the wedding; it cannot without a StartEvent command, so this is just not yet useful. 
+            //
+           // if(Game1.Date == farmerFarmhandWedding)
+           // {
+           //     getWeddingEvent();
+           //     ModEntry.proposalSender = null;
+           //     ModEntry.proposalReceiver = null;
+           // }
+
         }
 
         public static void GameLoop_DayEnding(object sender, DayEndingEventArgs e)

@@ -24,6 +24,9 @@ using xTile;
 using xTile.Dimensions;
 using System.Collections.Specialized;
 using StardewValley.Objects;
+using StardewValley.GameData.Weddings;
+using StardewValley.TokenizableStrings;
+using System.Text;
 
 
 namespace PolyamorySweetLove
@@ -42,6 +45,13 @@ namespace PolyamorySweetLove
         public static bool PatioPlacement = false;
         public static bool PorchPlacement = false;
 
+        
+        public static bool ActiveFarmerProposal = false;
+        public static Farmer? proposalReceiver;
+        public static Farmer? proposalSender;
+        public static bool proposalRefuse = false;
+        public static bool proposalAccept = false;
+        public static WorldDate farmerFarmhandWedding;
 
         public static bool justEngageinated
         {
@@ -90,6 +100,7 @@ namespace PolyamorySweetLove
             helper.Events.GameLoop.DayStarted += GameLoop_DayStarted;
             helper.Events.GameLoop.DayEnding += GameLoop_DayEnding;
             helper.Events.GameLoop.OneSecondUpdateTicked += GameLoop_OneSecondUpdateTicked;
+           
 
             helper.Events.Content.AssetRequested += Content_AssetRequested;
 
@@ -338,6 +349,11 @@ namespace PolyamorySweetLove
                original: AccessTools.Method(typeof(Farmer), nameof(Farmer.getChildrenCount)),
                prefix: new HarmonyMethod(typeof(FarmerPatches), nameof(FarmerPatches.Farmer_getChildrenCount_Prefix))
             );
+
+            harmony.Patch(
+                original: AccessTools.Method(typeof(FarmerTeam), "handleIncomingProposal"),
+                prefix: new HarmonyMethod(typeof(FarmerPatches), nameof(FarmerPatches.FarmerTeam_handleIncomingProposal_Prefix))
+             );
 
             // Utility Patches
             harmony.Patch(
@@ -878,7 +894,6 @@ namespace PolyamorySweetLove
                             }
                             else
                             {
-
                                 e.Npc.CurrentDialogue.Push(new Dialogue(e.Npc, "Strings\\StringsFromCSFiles:NPC.cs." + Game1.random.Choose("3972", "3973"), false));
                             }
                             Game1.drawDialogue(e.Npc);
@@ -907,10 +922,7 @@ namespace PolyamorySweetLove
                             {
                                 worldDate.TotalDays++;
                             }
-
-
                             e.Npc.modData["ApryllForever.PolyamorySweetLove/WeddingDate"] = worldDate.ToString();
-
 
                         }
 
@@ -954,6 +966,71 @@ namespace PolyamorySweetLove
 
                 }
             }
+
+            /*
+             * 
+             * Item for Farmer Marriage. Not gong to work here.
+             * 
+            if (e.Gift.Name.Equals("Ceres Pendant"))
+            {
+                string additionalVar = "";
+                string responseYes = null;
+                string responseNo = null;
+                string questionKey;
+
+
+                questionKey = "Strings\\UI:AskedToMarry_Female";
+                responseYes = "Strings\\UI:AskedToMarry_Accepted_Female";
+                responseNo = "Strings\\UI:AskedToMarry_Rejected_Female";
+
+
+                string question = Game1.content.LoadString(questionKey, ModEntry.proposalSender.Name, additionalVar);
+                Game1.currentLocation.createQuestionDialogue(question, Game1.currentLocation.createYesNoResponses(), delegate (Farmer _, string answer)
+                {
+                    // if (proposal.canceled.Value)
+                    if (answer == "No")
+                    {
+                        //Game1.drawObjectDialogue(Game1.content.LoadString("Strings\\UI:ProposalWithdrawn", ModEntry.proposalSender.Name));
+                        //Game1.drawObjectDialogue(Game1.content.LoadString("Strings\\UI:AskedToMarry_Rejected_Female", ModEntry.proposalSender.Name));
+                        Game1.Multiplayer.globalChatInfoMessage("DeclineProposal", ModEntry.proposalSender.Name, Game1.player.Name);
+                        ModEntry.proposalSender = null;
+                        ModEntry.proposalReceiver = null;
+                        ModEntry.ActiveFarmerProposal = false;
+                        //proposalRefuse = true;
+                    }
+                    else if (answer == "Yes")
+                    {
+
+
+                        // ProposalType.Marriage:
+
+                        // Friendship friendship2 = Game1.player.team.GetFriendship(ModEntry.proposalReceiver.UniqueMultiplayerID, Game1.player.UniqueMultiplayerID);
+                        //  friendship2.Status = FriendshipStatus.Engaged;
+                        //  friendship2.Proposer = ModEntry.proposalSender.UniqueMultiplayerID;
+                        WorldDate worldDate2 = new WorldDate(Game1.Date);
+                        worldDate2.TotalDays += 3;
+                        while (!Game1.canHaveWeddingOnDay(worldDate2.DayOfMonth, worldDate2.Season))
+                        {
+                            worldDate2.TotalDays++;
+                        }
+                        //friendship2.WeddingDate = worldDate2;
+                        farmerFarmhandWedding = worldDate2;
+                        Game1.drawObjectDialogue(Game1.content.LoadString("Strings\\UI:PlayerWeddingArranged"));
+                        Game1.Multiplayer.globalChatInfoMessage("Engaged", Game1.player.Name, ModEntry.proposalSender.Name);
+
+                        Game1.player.doEmote(20);
+                        ModEntry.ActiveFarmerProposal = false;
+                    }
+                    else
+                    {
+                        ModEntry.proposalSender = null;
+                        ModEntry.proposalReceiver = null;
+                        ModEntry.ActiveFarmerProposal = false;
+                    }
+                });
+
+            } */
+
         }
 
         private void weddingDelete(string arg1, string[] arg2) //The purpose here is to fix the wedding infinity bug.
@@ -1133,8 +1210,6 @@ namespace PolyamorySweetLove
                 SMonitor.Log($"Tried to give pendant to someone marriable");
                 if (who.HouseUpgradeLevel >= 1)
                 {
-
-
                     Game1.changeMusicTrack("silence");
                     who.spouse = __instance.Name;
 
@@ -1156,9 +1231,7 @@ namespace PolyamorySweetLove
 
                      //This adds a way for people to be able to get the wedding date in Content Patcher.
 
-
                     ModEntry.SpouseWeddingDate.Add(__instance.Name, friendship.WeddingDate.TotalDays);
-
 
                     __instance.modData["ApryllForever.PolyamorySweetLove/WeddingDate"] = friendship.WeddingDate.TotalDays.ToString();
 
@@ -1201,13 +1274,10 @@ namespace PolyamorySweetLove
                 if (ModEntry.myRand.NextDouble() < 0.5)
                 {
                     Game1.drawObjectDialogue(Game1.content.LoadString("Strings\\StringsFromCSFiles:NPC.cs.3969", __instance.displayName));
-
                 }
                 __instance.CurrentDialogue.Push(new Dialogue(__instance, "Strings\\StringsFromCSFiles:NPC.cs.3972", false));
                 Game1.drawDialogue(__instance);
-
             }
-
         }
 
 
@@ -1294,7 +1364,6 @@ namespace PolyamorySweetLove
                 SMonitor.Log($"The entity you are to force is not marriagable. You cannot do this!!!", LogLevel.Alert);
 
             }
-
         }
 
         public static bool Child_checkAction_Prefix(Farmer who, GameLocation l, Child __instance, ref bool __result)
@@ -1387,10 +1456,7 @@ namespace PolyamorySweetLove
                     Game1.stats.Increment("childrenTurnedToDoves");
                 }
             }
-
-
         }
-
 
         public static Point getRandomOpenPointInFarmHouse(Random r, int buffer = 0, int tries = 60)
         {
@@ -1436,6 +1502,80 @@ namespace PolyamorySweetLove
                 Game1.locations.Add(new LantanaTemple(Helper.ModContent));
             }
 
+        }
+
+        //
+        //This below is working towards fxing multiplayer wedding errors. Prob will not use what is below, but might. We will see.
+        //
+        public static Event getWeddingEvent()
+        {
+            Farmer farmer = proposalSender;
+            Farmer spouseFarmer = proposalReceiver;
+            long? spouseFarmerId = proposalReceiver.UniqueMultiplayerID;
+          
+            //string spouseActor = ((spouseFarmer != null) ? ("farmer" + Utility.getFarmerNumberFromFarmer(spouseFarmer)) : farmer.spouse);
+            WeddingData data = DataLoader.Weddings(Game1.content);
+            List<WeddingAttendeeData> contextualAttendees = new List<WeddingAttendeeData>();
+            if (data.Attendees != null)
+            {
+                List<string> exes = Utility.getExes(farmer);
+                foreach (WeddingAttendeeData attendee in data.Attendees.Values)
+                {
+                    if (!exes.Contains(attendee.Id) && !(attendee.Id == farmer.spouse) && GameStateQuery.CheckConditions(attendee.Condition, null, farmer) && (attendee.IgnoreUnlockConditions || !NPC.TryGetData(attendee.Id, out var characterData) || GameStateQuery.CheckConditions(characterData.UnlockConditions, null, farmer)))
+                    {
+                        contextualAttendees.Add(attendee);
+                    }
+                }
+            }
+            if (!data.EventScript.TryGetValue(spouseFarmerId?.ToString() ?? farmer.spouse, out var weddingEventString) && !data.EventScript.TryGetValue("default", out weddingEventString))
+            {
+                throw new InvalidOperationException("The Data/Weddings asset has no wedding script with the 'default' script key.");
+            }
+            weddingEventString = TokenParser.ParseText(weddingEventString, null, ParseWeddingToken, farmer);
+            return new Event(weddingEventString, null, "-2", farmer);
+            bool ParseWeddingToken(string[] query, out string replacement, Random random, Farmer player)
+            {
+                switch (ArgUtility.Get(query, 0)?.ToLower())
+                {
+                    case "spouseactor":
+                        replacement = spouseFarmer.Name;
+                        return true;
+                    case "setupcontextualweddingattendees":
+                        {
+                            StringBuilder sb = new StringBuilder();
+                            foreach (WeddingAttendeeData attendee in contextualAttendees)
+                            {
+                                sb.Append(" ");
+                                sb.Append(attendee.Setup);
+                            }
+                            replacement = sb.ToString();
+                            return true;
+                        }
+                    case "contextualweddingcelebrations":
+                        {
+                            StringBuilder sb = new StringBuilder();
+                            foreach (WeddingAttendeeData attendee in contextualAttendees)
+                            {
+                                if (attendee.Celebration != null)
+                                {
+                                    sb.Append(attendee.Celebration);
+                                    sb.Append("/");
+                                }
+                            }
+                            replacement = sb.ToString();
+                            return true;
+                        }
+                    default:
+                        replacement = null;
+                        return false;
+                }
+            }
+        }
+
+
+        public static string genderedKey(string baseKey, Farmer farmer)
+        {
+            return baseKey + (farmer.IsMale ? "_Male" : "_Female");
         }
 
     }
