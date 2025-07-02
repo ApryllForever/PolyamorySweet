@@ -1,5 +1,6 @@
 ﻿using HarmonyLib;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Input;
 using Netcode;
 using SpaceShared.APIs;
 using StardewModdingAPI;
@@ -11,6 +12,9 @@ using StardewValley.Triggers;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using xTile;
+using xTile.Layers;
+using xTile.Tiles;
 
 namespace PolyamorySweetLove
 {
@@ -200,6 +204,12 @@ namespace PolyamorySweetLove
             PatioPlacement = false;
             PorchPlacement = false;
 
+            //Helps me figure out what day it is in game, for placement purposes specifically
+            SMonitor.Log("PSL - Current Date is "+Game1.Date.ToString() +", day is "+Game1.dayOfMonth.ToString());
+
+          
+
+
             FixSpouseSpawnLocations();
 
             //
@@ -211,6 +221,11 @@ namespace PolyamorySweetLove
            //     ModEntry.proposalSender = null;
            //     ModEntry.proposalReceiver = null;
            // }
+
+            foreach (Farmer farmer in Game1.getAllFarmers())
+            {
+                PlacementCheck(farmer);
+            }
 
         }
 
@@ -230,8 +245,139 @@ namespace PolyamorySweetLove
                         break;
                     }
                 }
+
+
+                //Below is to set the PatioSpouse, who was not set before.
+                //
+               /*
+                * 
+                * Do not use yet. 
+                * 
+                {
+                    List<NPC> allSpouses = GetSpouses(farmer, false).Values.ToList();
+                    int index = Game1.random.Next(allSpouses.Count);
+
+                    NPC babe = allSpouses[index];
+
+                    // if (Utility.getRandomDouble(0.0, 0.99) < Config.PercentChanceForSpouseAtPatio)            
+                    NPCPatches.PatioSpouse = babe;
+                    SMonitor.Log($"PSL - Setting patio spouse for {farmer.Name} to "+ NPCPatches.PatioSpouse.Name +".");
+                }*/
             }
         }
+
+        // This method is to check if spouses are missing, placed in the void, etc, and if they are on the same tile
+        //
+        //
+        public static void PlacementCheck(Farmer f)
+        {
+
+            FarmHouse farmHouse = Utility.getHomeOfFarmer(f);
+
+            Farm farm = new Farm();
+
+            List<NPC> allSpouses = GetSpouses(f, false).Values.ToList();
+
+            Point position = farmHouse.getRandomOpenPointInHouse(myRand);
+
+            if (allSpouses.Count == 0)
+            {
+                SMonitor.Log("No spouses found for "+f.Name +", ignoring Spouse Placement Check.");
+                return;
+            }
+
+            if (allSpouses.Count == 1)
+            {
+                SMonitor.Log("One spouse found for " + f.Name + ", ignoring Spouse Placement Check.");
+                return;
+            }
+
+
+            // This was something I was looking into to try to check if two spouses were in the same place, may eventually remove.
+            //
+            Dictionary<NPC,Point> spousePositionDict = new Dictionary<NPC,Point>();
+
+            foreach (NPC npc in allSpouses)
+            {
+                spousePositionDict.Add(npc, npc.TilePoint);
+                
+            }
+
+            foreach (KeyValuePair<NPC, Point> spousePos in spousePositionDict)
+            {
+                SMonitor.Log("PSL - Spouse Position: " + spousePos.Key.Name + " at " + spousePos.Value.ToString()+ " in " +spousePos.Key.currentLocation.ToString()+".");
+            }
+
+            foreach (NPC npc in allSpouses)
+            {
+                if (spousePositionDict.ContainsKey(npc) )
+                {
+                    spousePositionDict.Remove(npc);
+                }
+
+                foreach (KeyValuePair<NPC, Point> spousePos in spousePositionDict)
+                {
+                    if(spousePos.Value.Equals(npc.TilePoint))
+                    {
+                        Game1.warpCharacter(npc, farmHouse, new Vector2(position.X, position.Y));
+                        SMonitor.Log(spousePos.Key.Name+" "+ spousePos.Value.ToString()+"was overlapping with "+npc.Name+npc.Tile.ToString()+".");
+                    }
+                }
+            }
+
+            /*
+            foreach (NPC spouse in allSpouses)
+            {
+                if (spouse is null)
+                    continue;
+                SMonitor.Log("PSL - initiating spouse placement for" + spouse.Name);
+                Point position = farmHouse.getRandomOpenPointInHouse(myRand);
+
+                if (farm.Equals(spouse.currentLocation))
+                {
+                    SMonitor.Log("PSL - " + spouse.Name + " should be on the Patio."); // Marisol was to be patio, was warped to farmhouse
+                    continue;
+                }
+
+                //THis is making patio placement difficult
+                //if (!farmHouse.Equals(spouse.currentLocation))
+                //{
+                //    Game1.warpCharacter(spouse, farmHouse, new Vector2(position.X, position.Y));
+                //    spouse.faceDirection(myRand.Next(0, 4));
+                //    SMonitor.Log("PSL - Warping NPC from where ever to Random Open Place - " + spouse.Name);
+                //}
+
+                if(farm.Equals(spouse.currentLocation))
+                {
+                    SMonitor.Log("PSL - " + spouse.Name + " should be on the Patio."); // Marisol was to be patio, was warped to farmhouse
+                }
+
+                if(spouse.Position.X <= 1)
+                {
+                    Game1.warpCharacter(spouse, farmHouse, new Vector2(position.X, position.Y));
+                    spouse.faceDirection(myRand.Next(0, 4));
+                    SMonitor.Log("PSL - Warping NPC from The Void to Random Open Place - " + spouse.Name);
+                }
+                if (spouse.Position.Y <= 1)
+                {
+                    Game1.warpCharacter(spouse, farmHouse, new Vector2(position.X, position.Y));
+                    spouse.faceDirection(myRand.Next(0, 4));
+                    SMonitor.Log("PSL - Warping NPC from The Void to Random Open Place - " + spouse.Name);
+                }
+                if(NPC.checkTileOccupancyForSpouse(farmHouse, spouse.Tile,spouse.Name) == false)
+                {
+                    Game1.warpCharacter(spouse, spouse.currentLocation, new Vector2(position.X, position.Y));
+                    spouse.faceDirection(myRand.Next(0, 4));
+                    SMonitor.Log("PSL - Warping NPC from occupied tile to Random Open Place - " + spouse.Name); // Problem: This is warping liuterally everyone, including the patio spouse
+                }
+              
+
+
+            }
+            */
+
+        }
+
 
         public static bool Hug(string[] args, TriggerActionContext context, out string error)
         {

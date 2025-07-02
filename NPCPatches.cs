@@ -25,7 +25,7 @@ namespace PolyamorySweetLove
         private static IMonitor Monitor;
         private static ModConfig Config;
         private static IModHelper Helper;
-        public static NPC PatioSpouse = null;
+       
 
         // call this method from your Entry class
         public static void Initialize(IMonitor monitor, ModConfig config, IModHelper helper)
@@ -1505,6 +1505,8 @@ namespace PolyamorySweetLove
         {
             try
             {
+                // NPC? spouse = PatioSpouse(Game1.player.UniqueMultiplayerID, out NPC? babe);
+                //spouse = __instance;
                 PatioSpouse = __instance;
             }
             catch (Exception ex)
@@ -1526,5 +1528,22 @@ namespace PolyamorySweetLove
                 Monitor.Log($"Failed in {nameof(Character_displayName_Getter_Postfix)}:\n{ex}", LogLevel.Error);
             }
         }
+        public static NPC PatioSpouse = null;
+        /*
+        public static NPC? PatioSpouse(long FarmerID, out NPC? babe)
+        {
+            Farmer? farmer = Game1.GetPlayer(FarmerID);
+            if(farmer == null) 
+            {
+                babe = null;
+                return null;
+            }
+            List<NPC> allSpouses = ModEntry.GetSpouses(farmer, false).Values.ToList();
+            int index = Game1.random.Next(allSpouses.Count);
+
+             babe = allSpouses[index];
+
+            return babe;
+        }*/
     }
 }
