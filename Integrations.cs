@@ -17,6 +17,16 @@ namespace PolyamorySweetLove
         public static IPlannedParenthoodAPI plannedParenthoodAPI;
         public static IContentPatcherAPI contentPatcherAPI;
 
+        public static int spousesCount()
+        {
+            if (Game1.player != null)
+            {
+                int wife = (GetSpouses(Game1.player, true).Keys.ToList()).Count;
+                return wife;
+            }
+            return 0;
+        }
+
         public static void LoadModApis()
         {
             kissingAPI = SHelper.ModRegistry.GetApi<IKissingAPI>("ApryllForever.PolyamorySweetKiss");
@@ -76,7 +86,47 @@ namespace PolyamorySweetLove
                     return spouses.ToArray();
                 });
 
+                contentPatcherAPI.RegisterToken(context.ModManifest, "PlayerSpouseCount", () =>
+                {
+                    Farmer player;
+
+                    if (Context.IsWorldReady)
+                        player = Game1.player;
+                    else if (SaveGame.loaded?.player != null)
+                        player = SaveGame.loaded.player;
+                    else
+                        return null;
+
+                    //var spouses = GetSpouses(player, true).Keys.ToList();
+
+                    var wivescount = spousesCount;
+                   
+                    return new[] { wivescount.ToString() };
+                });
+
+                contentPatcherAPI.RegisterToken(context.ModManifest, "WifeRoomsWidth", () =>
+                {
+                    Farmer player;
+
+                    if (Context.IsWorldReady)
+                        player = Game1.player;
+                    else if (SaveGame.loaded?.player != null)
+                        player = SaveGame.loaded.player;
+                    else
+                        return null;
+
+                    var spouses = GetSpouses(player, true).Keys.ToList();
+
+                    int width = 0;
+
+                    width = (spouses.Count() * 8) + 69;
+
+                    return new[] { width.ToString() };
+                });
+
                 contentPatcherAPI.RegisterToken(context.ModManifest, "NPCWeddingDate", new WeddingDateToken());
+
+
 
 
             }

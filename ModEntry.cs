@@ -1,5 +1,6 @@
 ﻿using HarmonyLib;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using PolyamorySweetLove;
 using SpaceCore.Events;
@@ -9,24 +10,31 @@ using StardewModdingAPI.Events;
 using StardewValley;
 using StardewValley.Audio;
 using StardewValley.Characters;
+using StardewValley.Enchantments;
 using StardewValley.Events;
 using StardewValley.Extensions;
 using StardewValley.GameData.Shops;
+using StardewValley.GameData.Weddings;
 using StardewValley.Locations;
 using StardewValley.Menus;
+using StardewValley.Objects;
 using StardewValley.Pathfinding;
+using StardewValley.SpecialOrders;
+using StardewValley.TokenizableStrings;
+using StardewValley.Tools;
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Text.RegularExpressions;
 using xTile;
 using xTile.Dimensions;
-using System.Collections.Specialized;
-using StardewValley.Objects;
-using StardewValley.GameData.Weddings;
-using StardewValley.TokenizableStrings;
-using System.Text;
+using xTile.Layers;
+using xTile.Tiles;
+using StardewModdingAPI.Framework.Reflection;
+//using Xunit.Sdk;
 
 
 namespace PolyamorySweetLove
@@ -34,7 +42,7 @@ namespace PolyamorySweetLove
     /// <summary>The mod entry point.</summary>
     public partial class ModEntry : Mod
     {
-
+        //private readonly Reflector? Reflection;
 
         public static bool BabyTonight = false;
         public static string BabyTonightSpouse = String.Empty;
@@ -45,7 +53,7 @@ namespace PolyamorySweetLove
         public static bool PatioPlacement = false;
         public static bool PorchPlacement = false;
 
-        
+
         public static bool ActiveFarmerProposal = false;
         public static Farmer? proposalReceiver;
         public static Farmer? proposalSender;
@@ -100,7 +108,8 @@ namespace PolyamorySweetLove
             helper.Events.GameLoop.DayStarted += GameLoop_DayStarted;
             helper.Events.GameLoop.DayEnding += GameLoop_DayEnding;
             helper.Events.GameLoop.OneSecondUpdateTicked += GameLoop_OneSecondUpdateTicked;
-           
+            helper.Events.GameLoop.DayEnding += GameLoop_PreventSOExpiration;
+
 
             helper.Events.Content.AssetRequested += Content_AssetRequested;
 
@@ -162,9 +171,9 @@ namespace PolyamorySweetLove
 
             harmony.Patch(
                original: AccessTools.Method(typeof(NPC), nameof(NPC.tryToReceiveActiveObject)),
-               prefix: new HarmonyMethod(typeof(NPCPatches), nameof(NPCPatches.NPC_tryToReceiveActiveObject_Prefix)),
-               postfix: new HarmonyMethod(typeof(NPCPatches), nameof(NPCPatches.NPC_tryToReceiveActiveObject_Postfix)),
-               transpiler: new HarmonyMethod(typeof(NPCPatches), nameof(NPCPatches.NPC_tryToReceiveActiveObject_Transpiler))
+               prefix: new HarmonyMethod(typeof(NPCPatches), nameof(NPCPatches.NPC_tryToReceiveActiveObject_Prefix_Mermaid)),
+               postfix: new HarmonyMethod(typeof(NPCPatches), nameof(NPCPatches.NPC_tryToReceiveActiveObject_Postfix_Mermaid)),
+               transpiler: new HarmonyMethod(typeof(NPCPatches), nameof(NPCPatches.NPC_tryToReceiveActiveObject_Transpiler_Mermaid))
             );
 
             harmony.Patch(
@@ -416,6 +425,48 @@ namespace PolyamorySweetLove
              original: AccessTools.DeclaredMethod(typeof(Child), nameof(Child.checkAction)),
              prefix: new HarmonyMethod(typeof(ModEntry), nameof(ModEntry.Child_checkAction_Prefix))
             );
+
+
+            // For Marry Lantana
+            harmony.Patch(
+                   original: AccessTools.Method(typeof(SpecialOrder), nameof(SpecialOrder.IsTimedQuest)),
+                   postfix: new HarmonyMethod(typeof(ModEntry), nameof(SpecialOrders_IsTimedQuest_Postfix))
+               );
+
+            harmony.Patch(
+                  original: AccessTools.DeclaredMethod(typeof(BaseEnchantment), nameof(BaseEnchantment.GetEnchantmentFromItem)),
+                  postfix: new HarmonyMethod(typeof(ModEntry), nameof(BaseEnchantment_GetEnchantmentFromItem_Postfix))
+              );
+            //These two are not needeed
+            // harmony.Patch(
+            //     original: AccessTools.DeclaredMethod(typeof(IClickableMenu), nameof(IClickableMenu.drawHoverText),  new Type[] { typeof(SpriteBatch), typeof(StringBuilder), typeof(SpriteFont), typeof(int), typeof(int), typeof(int), typeof(string), typeof(int), typeof(string[]), typeof(Item), typeof(int), typeof(string), typeof(int), typeof(int), typeof(int), typeof(float), typeof(CraftingRecipe), typeof(IList<Item>), typeof(Texture2D), typeof(Microsoft.Xna.Framework.Rectangle), typeof(Color), typeof(Color), typeof(float), typeof(int), typeof(int) }),
+            //     postfix: new HarmonyMethod(typeof(ModEntry), nameof(IClickableMenu_drawHoverTextPostfix))
+            //  );
+            // harmony.Patch(
+            //      original: AccessTools.DeclaredMethod(typeof(MeleeWeapon), nameof(MeleeWeapon.attemptAddRandomInnateEnchantment)),
+            //      prefix: new HarmonyMethod(typeof(ModEntry), nameof(attemptAddRandomInnateEnchantment_Prefix))
+            // );
+
+            harmony.Patch(
+                original: AccessTools.DeclaredMethod(typeof(MeleeWeapon), nameof(MeleeWeapon.Forge)),
+                prefix: new HarmonyMethod(typeof(ModEntry), nameof(Forge_Prefix))
+            );
+
+
+            /*
+            if (helper.ModRegistry.IsLoaded("SunberryTeam.SBVSMAPI"))
+            {
+                if (helper.ModRegistry.Get("SunberryTeam.SBVSMAPI").Manifest.Version.Equals("1.0.4-unofficial.1-android"))
+                {
+
+                    harmony.Patch(
+                        original: AccessTools.Method("SunberryVillage.HarmonyPatcher:ApplyConditionalPatches"),
+                        prefix: new HarmonyMethod(AccessTools.Method(typeof(ModEntry), nameof(ModEntry.UnofficialCompat_Prefix)))
+                    );
+                }
+            }
+            */
+
         }
 
         public override object GetApi()
@@ -427,6 +478,90 @@ namespace PolyamorySweetLove
         {
             if (!Config.EnableMod)
                 return;
+            
+            /*
+             * Attempt to resize house. Does not working.
+             * 
+            int minWidth = 220;
+            int minHeight = 120;
+            if (e.Name.IsEquivalentTo("Maps/FarmHouse1_marriage"))
+            {
+                if (Game1.player == null)
+                    return;
+
+                Map map = SHelper.GameContent.Load<Map>("Maps/FarmHouse1_marriage");
+
+
+                {
+                    // resize layers
+                    foreach (Layer layer in map.Layers)
+                    {
+                        // check if resize needed
+                        if (layer.LayerWidth >= minWidth && layer.LayerHeight >= minHeight)
+                            continue;
+                       
+
+                        // build new tile matrix
+                        int width = minWidth;
+                        int height = minHeight;
+                        Tile[,] tiles = new Tile[width, height];
+                        for (int x = 0; x < layer.LayerWidth; x++)
+                        {
+                            for (int y = 0; y < layer.LayerHeight; y++)
+                                tiles[x, y] = layer.Tiles[x, y];
+                        }
+
+                        // update fields
+                        SHelper.Reflection.GetField<Tile[,]>(layer, "m_tiles").SetValue(tiles);
+                        SHelper.Reflection.GetField<TileArray>(layer, "m_tileArray").SetValue(new TileArray(layer, tiles));
+                        SHelper.Reflection.GetField<Size>(layer, "m_layerSize").SetValue(new Size(width, height));
+                    }
+
+                    // resize map
+                    
+                        SHelper.Reflection.GetMethod(map, "UpdateDisplaySize").Invoke();
+                }
+            }
+
+            if (e.Name.IsEquivalentTo("Maps/FarmHouse2_marriage"))
+            {
+                if (Game1.player == null)
+                    return;
+
+                Map map = SHelper.GameContent.Load<Map>("Maps/FarmHouse2_marriage");
+
+
+                {
+                    // resize layers
+                    foreach (Layer layer in map.Layers)
+                    {
+                        // check if resize needed
+                        if (layer.LayerWidth >= minWidth && layer.LayerHeight >= minHeight)
+                            continue;
+
+
+                        // build new tile matrix
+                        int width = minWidth;
+                        int height = minHeight;
+                        Tile[,] tiles = new Tile[width, height];
+                        for (int x = 0; x < layer.LayerWidth; x++)
+                        {
+                            for (int y = 0; y < layer.LayerHeight; y++)
+                                tiles[x, y] = layer.Tiles[x, y];
+                        }
+
+                        // update fields
+                        SHelper.Reflection.GetField<Tile[,]>(layer, "m_tiles").SetValue(tiles);
+                        SHelper.Reflection.GetField<TileArray>(layer, "m_tileArray").SetValue(new TileArray(layer, tiles));
+                        SHelper.Reflection.GetField<Size>(layer, "m_layerSize").SetValue(new Size(width, height));
+                    }
+
+                    // resize map
+
+                    SHelper.Reflection.GetMethod(map, "UpdateDisplaySize").Invoke();
+                }
+            } */
+
             if (e.NameWithoutLocale.IsEquivalentTo("Data/Shops"))
             {
                 e.Edit(delegate (IAssetData data)
@@ -786,6 +921,16 @@ namespace PolyamorySweetLove
 
             if (e.Gift.Name.Equals("Atagartis Pendant"))
             {
+                if ((Game1.characterData[e.Npc.Name].CustomFields != null && e.Npc.datable.Value == true && (Game1.characterData[e.Npc.Name].CustomFields.ContainsValue("IgnorePSL"))))
+                {
+                    Game1.addHUDMessage(new HUDMessage("The Mod Author who made character has requested that they not proposed to with this item."));
+                }
+
+                if ((Game1.characterData[e.Npc.Name].CustomFields != null && e.Npc.datable.Value == true && (Game1.characterData[e.Npc.Name].CustomFields.ContainsKey("IgnorePSL"))))
+                {
+                    Game1.addHUDMessage(new HUDMessage("The Mod Author who made character has requested that they not proposed to with this item."));
+                }
+
                 e.Npc.CurrentDialogue.Pop();
                 {
                     //RejectMermaidPendant_Divorced
@@ -808,10 +953,11 @@ namespace PolyamorySweetLove
                     string rejectUnderTenHeartsAskedAgain = $"Characters\\Dialogue\\{e.Npc.Name}:RejectMermaidPendant_Under10Hearts_AskedAgain";
 
 
+
                     SMonitor.Log($"Try give pendant to {e.Npc.Name}");
                     if (Game1.player.isEngaged())
                     {
-                        SMonitor.Log($"Tried to give pendant while engaged");
+                        SMonitor.Log($"Tried to give Atagartis Pendant while engaged");
 
                         if ((e.Npc.Dialogue.ContainsKey("RejectMermaidPendant_PlayerWithSomeoneElse")))
                         {
@@ -830,7 +976,7 @@ namespace PolyamorySweetLove
 
                     if (!e.Npc.datable.Value /*|| __instance.isMarriedOrEngaged() */ )
                     {
-                        SMonitor.Log($"Tried to give pendant to someone not datable");
+                        SMonitor.Log($"Tried to give Atagartis Pendant to someone not datable");
 
                         if ((e.Npc.Dialogue.ContainsKey("RejectMermaidPendant_NotDatable")))
                         {
@@ -852,7 +998,7 @@ namespace PolyamorySweetLove
 
                     else if (e.Npc.datable.Value && Game1.player.friendshipData.ContainsKey(e.Npc.Name) && Game1.player.friendshipData.ContainsKey(e.Npc.Name) && Game1.player.friendshipData[e.Npc.Name].Points < Config.MinPointsToMarry * 0.6f)
                     {
-                        SMonitor.Log($"Tried to give pendant to someone with far fewer hearts than the configured amount for marriage.");
+                        SMonitor.Log($"Tried to give Atagartis Pendant to someone with far fewer hearts than the configured amount for marriage.");
 
                         if (!Game1.player.friendshipData[e.Npc.Name].ProposalRejected)
                         {
@@ -884,7 +1030,7 @@ namespace PolyamorySweetLove
 
                     else if (e.Npc.datable.Value && Game1.player.friendshipData.ContainsKey(e.Npc.Name) && Game1.player.friendshipData[e.Npc.Name].Points < Config.MinPointsToMarry)
                     {
-                        SMonitor.Log($"Tried to give pendant to someone with fewer hearts than the config");
+                        SMonitor.Log($"Tried to give Atagartis Pendant to someone with fewer hearts than the config");
 
                         if (!Game1.player.friendshipData[e.Npc.Name].ProposalRejected)
                         {
@@ -969,7 +1115,7 @@ namespace PolyamorySweetLove
 
             /*
              * 
-             * Item for Farmer Marriage. Not gong to work here.
+             * Item for Farmer Marriage. Not gong to work here. Problem is cannot Netsynch
              * 
             if (e.Gift.Name.Equals("Ceres Pendant"))
             {
@@ -1041,46 +1187,63 @@ namespace PolyamorySweetLove
                 return;
             }
 
-           foreach( KeyValuePair<string,Friendship> wiggle in Game1.player.friendshipData.Pairs)  
-            {
-                Friendship friendship;
-                Game1.player.friendshipData.TryGetValue(wiggle.Key, out friendship);
 
-                if (friendship.IsEngaged())
+            foreach (Farmer farmer in Game1.getAllFarmers())
+            {
+                foreach (KeyValuePair<string, Friendship> wiggle in farmer.friendshipData.Pairs)
                 {
-                    friendship.WeddingDate = null;
-                    NPC npc = Game1.getCharacterFromName(wiggle.Key);
-                    if (npc.modData != null && npc.modData.ContainsKey("ApryllForever.PolyamorySweetLove/WeddingDate"))
-                        npc.modData.Remove("ApryllForever.PolyamorySweetLove/WeddingDate");
-                    Monitor.Log("Removed upcoming wedding for "+ npc.displayName +".", LogLevel.Alert);
+                    Friendship friendship;
+                    farmer.friendshipData.TryGetValue(wiggle.Key, out friendship);
+
+                    if (friendship.IsEngaged())
+                    {
+                        friendship.WeddingDate = null;
+                        NPC npc = Game1.getCharacterFromName(wiggle.Key);
+                        if (npc.modData != null && npc.modData.ContainsKey("ApryllForever.PolyamorySweetLove/WeddingDate"))
+                            npc.modData.Remove("ApryllForever.PolyamorySweetLove/WeddingDate");
+                        Monitor.Log("Removed upcoming wedding for "+ npc.displayName +".", LogLevel.Alert);
+                    }
+
                 }
 
-            }
+                FarmerTeam team = Game1.player.team;
 
-            List<NPC> all_characters = Utility.getAllCharacters();
-            foreach (NPC character in all_characters)
-            {
-                if (character == null) continue;
-               if (!character.IsVillager) continue;
-               if(character.Age == 2) continue;
-                if (character is Child) continue;
 
-                Friendship friendship;
-                Game1.player.friendshipData.TryGetValue(character.Name, out friendship);
 
-                if(friendship == null) continue;
-
-                if(friendship.Status == FriendshipStatus.Engaged)
+                foreach (var kvpair in team.friendshipData.Pairs)
                 {
+                    if (kvpair.Key.Contains(farmer.UniqueMultiplayerID) && kvpair.Value.IsEngaged())
+                    {
+                       kvpair.Value.Clear();
+                    }
+                }
+
+                List<NPC> all_characters = Utility.getAllCharacters();
+                foreach (NPC character in all_characters)
+                {
+                    if (character == null) continue;
+                    //if (!character.IsVillager) continue; Want to clear farmer weddings too
+                    if (character.Age == 2) continue;
+                    if (character is Child) continue;
+
+                    Friendship friendship;
+                    Game1.player.friendshipData.TryGetValue(character.Name, out friendship);
+
+                    if (friendship == null) continue;
+
+                    if (friendship.Status == FriendshipStatus.Engaged)
+                    {
+                        friendship.WeddingDate = null;
+                        friendship.Status = FriendshipStatus.Friendly;
+                    }
                     friendship.WeddingDate = null;
-                    friendship.Status = FriendshipStatus.Friendly;
-                } 
-                friendship.WeddingDate = null;
 
+                }
+                Game1.weddingsToday.Clear();
+                Game1.weddingToday = false;
+
+                Monitor.Log("Removing all pending weddings for "+ farmer.displayName +".", LogLevel.Info);
             }
-
-            Monitor.Log("Removing all pending weddings for "+ Game1.player.displayName +".", LogLevel.Info);
-
         }
 
         private void proposalAttempt(string arg1, string[] arg2)
@@ -1229,7 +1392,7 @@ namespace PolyamorySweetLove
 
                     friendship.WeddingDate = worldDate;
 
-                     //This adds a way for people to be able to get the wedding date in Content Patcher.
+                    //This adds a way for people to be able to get the wedding date in Content Patcher.
 
                     ModEntry.SpouseWeddingDate.Add(__instance.Name, friendship.WeddingDate.TotalDays);
 
@@ -1458,40 +1621,193 @@ namespace PolyamorySweetLove
             }
         }
 
-        public static Point getRandomOpenPointInFarmHouse(Random r, int buffer = 0, int tries = 60)
+        public static List<string> SOKeys = new List<string>()
         {
-            FarmHouse farmhouse = Utility.getHomeOfFarmer(Game1.player);
+            "ApryllForever.DreadfulSwordSO"
+        };
 
-            for (int i = 0; i < tries; i++)
+
+        public static void SpecialOrders_IsTimedQuest_Postfix(SpecialOrder __instance, ref bool __result)
+        {
             {
-                Map map = farmhouse.Map;
-                Point result = new Point(r.Next(map.Layers[0].LayerWidth), r.Next(map.Layers[0].LayerHeight));
-                Microsoft.Xna.Framework.Rectangle rect = new Microsoft.Xna.Framework.Rectangle(result.X - buffer, result.Y - buffer, 1 + buffer * 2, 1 + buffer * 2);
-                bool flag = false;
-                foreach (Point point in rect.GetPoints())
+                string orderKey = __instance.questKey.Value;
+                if (SOKeys.Contains(orderKey, StringComparer.OrdinalIgnoreCase))
                 {
-                    int x = point.X;
-                    int y = point.Y;
-                    flag = farmhouse.getTileIndexAt(x, y, "Back") == -1 || !farmhouse.CanItemBePlacedHere(new Vector2(x, y)) || farmhouse.isTileOnWall(x, y);
-                    if (farmhouse.getTileIndexAt(x, y, "Back") == 0 && farmhouse.getTileSheetIDAt(x, y, "Back") == "indoor")
-                    {
-                        flag = true;
-                    }
-
-                    if (flag)
-                    {
-                        break;
-                    }
-                }
-
-                if (!flag)
-                {
-                    return result;
+                    __result = false;
+                    return;
                 }
             }
 
-            return Point.Zero;
         }
+
+        private static void GameLoop_PreventSOExpiration(object sender, DayEndingEventArgs e)
+        {
+            if (!Context.IsMainPlayer)
+                return;
+
+            foreach (SpecialOrder order in Game1.player.team.specialOrders)
+            {
+                string orderKey = order.questKey.Value;
+                if (SOKeys.Contains(orderKey, StringComparer.OrdinalIgnoreCase))
+                {
+                    order.dueDate.Value = Game1.Date.TotalDays + 1337;
+                }
+            }
+        }
+
+        /*
+        public static bool BaseEnchantment_GetEnchantmentFromItem_Prefix(Item base_item, Item item, ref BaseEnchantment __result)
+        {
+            if(base_item != null&& base_item.ItemId == "MermaidsKiss")
+            {
+                {
+                    if (item?.QualifiedItemId == "(O)910")
+                    {
+                        __result = new MermaidEnchantment();
+                        return false;
+                    }
+                 
+                    return true;
+                }
+            }
+            return true;
+        }*/
+
+        public static void BaseEnchantment_GetEnchantmentFromItem_Postfix(Item base_item, Item item, ref BaseEnchantment __result)
+        {
+            if (base_item != null&& base_item.ItemId == "MermaidsKiss")
+            {
+                {
+                    if (item?.QualifiedItemId == "(O)910")
+                    {
+                        __result = new MermaidEnchantment();
+
+                    }
+
+
+                }
+            }
+
+        }
+        /*
+        public static void IClickableMenu_drawHoverTextPostfix(MeleeWeapon __instance, SpriteBatch b, StringBuilder text, SpriteFont font, int xOffset = 0, int yOffset = 0, int moneyAmountToDisplayAtBottom = -1, string boldTitleText = null, int healAmountToDisplay = -1, string[] buffIconsToDisplay = null, Item hoveredItem = null, int currencySymbol = 0, string extraItemToShowIndex = null, int extraItemToShowAmount = -1, int overrideX = -1, int overrideY = -1, float alpha = 1f, CraftingRecipe craftingIngredients = null, IList<Item> additional_craft_materials = null, Texture2D boxTexture = null, Microsoft.Xna.Framework.Rectangle? boxSourceRect = null, Color? textColor = null, Color? textShadowColor = null, float boxScale = 1f, int boxWidthOverride = -1, int boxHeightOverride = -1)
+        {
+            if(__instance != null && __instance.ItemId.Equals("MermaidsKiss")  && __instance.GetEnchantmentLevel<MermaidEnchantment>() > 0)
+            {
+
+
+                int width = Math.Max((healAmountToDisplay != -1) ? ((int)font.MeasureString(healAmountToDisplay + "+ Energy" + 32).X) : 0, Math.Max((int)font.MeasureString(text).X, (boldTitleText != null) ? ((int)Game1.dialogueFont.MeasureString(boldTitleText).X) : 0)) + 32;
+                int height = Math.Max(20 * 3, (int)font.MeasureString(text).Y + 32 + (int)((moneyAmountToDisplayAtBottom > -1) ? Math.Max(font.MeasureString(moneyAmountToDisplayAtBottom.ToString() ?? "").Y + 4f, 44f) : 0f) + (int)((boldTitleText != null) ? (Game1.dialogueFont.MeasureString(boldTitleText).Y + 16f) : 0f));
+
+                int x = Game1.getOldMouseX() + 32 + xOffset;
+                int y = Game1.getOldMouseY() + 32 + yOffset;
+
+                //if (weapon.GetTotalForgeLevels() > 0)
+                
+                    height += (int)font.MeasureString("T").Y;
+                
+                //if (weapon.GetEnchantmentLevel<GalaxySoulEnchantment>() > 0)
+                
+                    height += (int)font.MeasureString("T").Y;
+                
+
+                if (overrideX != -1)
+                {
+                    x = overrideX;
+                }
+                if (overrideY != -1)
+                {
+                    y = overrideY;
+                }
+                if (x + width > Utility.getSafeArea().Right)
+                {
+                    x = Utility.getSafeArea().Right - width;
+                    y += 16;
+                }
+                if (y + height > Utility.getSafeArea().Bottom)
+                {
+                    x += 16;
+                    if (x + width > Utility.getSafeArea().Right)
+                    {
+                        x = Utility.getSafeArea().Right - width;
+                    }
+                    y = Utility.getSafeArea().Bottom - height;
+                }
+
+                MermaidEnchantment enchantment = __instance.GetEnchantmentOfType<MermaidEnchantment>();
+                string forged_string = Game1.content.LoadString("Strings\\UI:Item_Tooltip_MermaidForged");
+                Utility.drawTextWithShadow(b, forged_string, font, new Vector2(x + 16, y + 16 + 4), Color.DarkRed, 1f, -1f, 2, 2);
+                int level = enchantment.GetLevel();
+                if (level < enchantment.GetMaximumLevel())
+                {
+                    Utility.drawTextWithShadow(b, " (" + level + "/" + enchantment.GetMaximumLevel() + ")", font, new Vector2((float)(x + 16) + font.MeasureString(forged_string).X, y + 16 + 4), Color.DimGray, 1f, -1f, 2, 2);
+                }
+                y += (int)font.MeasureString("T").Y;
+            }
+        }*/
+
+        //Item item, Random r, bool force = false, List<BaseEnchantment> enchantsToReroll = null
+        /*
+        public static bool attemptAddRandomInnateEnchantment_Prefix(Item item, Random r, bool force = false, List<BaseEnchantment> enchantsToReroll = null)
+        {
+            if (item is MeleeWeapon weapon && item.ItemId.Equals("MermaidsKiss"))
+            {
+                if (weapon.GetEnchantmentLevel<MermaidEnchantment>() >=1)
+
+                    Game1.addHUDMessage(new HUDMessage("You cannot add an enchantment during the Mermaid Enchantment Process."));
+
+                return false;
+            }
+            return true;
+        }*/
+
+        public static bool Forge_Prefix(ref bool __result, Tool __instance, Item item, bool count_towards_stats = false)
+        {
+            if (item.ItemId != "910")
+            {
+                return true;
+            }
+            BaseEnchantment enchantment = BaseEnchantment.GetEnchantmentFromItem(__instance, item);
+            if (enchantment != null)
+            {
+                if (__instance.AddEnchantment(enchantment))
+                {
+                    if (enchantment is MermaidEnchantment)
+                    {
+                        string newItemId = "MermaidsEternalKiss";
+                        if (__instance is MeleeWeapon weapon && __instance.ItemId.Equals("MermaidsKiss"))
+                        {
+                            if (weapon.GetEnchantmentLevel<MermaidEnchantment>() ==1)
+                            {
+                                weapon.transform(newItemId);
+
+                                DelayedAction.playSoundAfterDelay("discoverMineral", 400);
+                                Game1.Multiplayer.globalChatInfoMessage("InfinityWeapon", Game1.player.name.Value, TokenStringBuilder.ItemNameFor(weapon));
+                                Game1.addHUDMessage(new HUDMessage("You have obtained the Mermaid's Eternal Kiss!!!"));
+
+                                MermaidEnchantment enchant = weapon.GetEnchantmentOfType<MermaidEnchantment>();
+                                if (enchant != null)
+                                {
+                                    weapon.RemoveEnchantment(enchant);
+                                }
+                                __result = true;
+                                return false;
+                            }
+
+
+
+                        }
+                    }
+
+                }
+
+            }
+
+            return true;
+        }
+
+
+
 
 
         private void OnLoadStageChanged(object sender, LoadStageChangedEventArgs e)
@@ -1512,7 +1828,7 @@ namespace PolyamorySweetLove
             Farmer farmer = proposalSender;
             Farmer spouseFarmer = proposalReceiver;
             long? spouseFarmerId = proposalReceiver.UniqueMultiplayerID;
-          
+
             //string spouseActor = ((spouseFarmer != null) ? ("farmer" + Utility.getFarmerNumberFromFarmer(spouseFarmer)) : farmer.spouse);
             WeddingData data = DataLoader.Weddings(Game1.content);
             List<WeddingAttendeeData> contextualAttendees = new List<WeddingAttendeeData>();
@@ -1578,5 +1894,70 @@ namespace PolyamorySweetLove
             return baseKey + (farmer.IsMale ? "_Male" : "_Female");
         }
 
+        public static Point getRandomOpenPoint(FarmHouse f, Random r, int buffer = 0, int tries = 60)  //Better Collision detection than vanilla method, checks for presence of other characters
+        {
+            for (int i = 0; i < tries; i++)
+            {
+                Point result = new Point(r.Next(f.map.Layers[0].LayerWidth), r.Next(f.map.Layers[0].LayerHeight));
+                Microsoft.Xna.Framework.Rectangle rect = new Microsoft.Xna.Framework.Rectangle(result.X - buffer, result.Y - buffer, 1 + buffer * 2, 1 + buffer * 2);
+                bool flag = false;
+                foreach (Point point in rect.GetPoints())
+                {
+                    int x = point.X;
+                    int y = point.Y;
+                    flag = !f.hasTileAt(x, y, "Back") || !f.CanItemBePlacedHere(new Vector2(x, y)) || f.isTileOnWall(x, y);
+                    if (f.getTileIndexAt(x, y, "Back", "indoor") == 0)
+                    {
+                        flag = true;
+                    }
+
+                    if (f.IsTileOccupiedBy(new Vector2(x, y), ~(CollisionMask.Characters | CollisionMask.Farmers)))
+                    {
+                        flag = true;
+                    }
+
+                    if (flag)
+                    {
+                        break;
+                    }
+
+                }
+
+                if (!flag)
+                {
+                    return result;
+                }
+            }
+
+            return Point.Zero;
+        }
+
+        private static bool isFarmHouseTileOccupied(GameLocation location, Point tileLocation, string characterToIgnore)
+        {
+            Microsoft.Xna.Framework.Rectangle tileLocationRect = new Microsoft.Xna.Framework.Rectangle(tileLocation.X * 64 + 1, tileLocation.Y * 64 + 1, 62, 62);
+
+            for (int i = 0; i < location.characters.Count; i++)
+            {
+                if (location.characters[i] != null && !location.characters[i].Name.Equals(characterToIgnore) && location.characters[i].GetBoundingBox().Intersects(tileLocationRect))
+                {
+                    SMonitor.Log("PSL - " + location.characters.Name + " is already occupying " + tileLocation.ToString() + ".");
+
+                    return true;
+                }
+            }
+            return false;
+        }
+        private static bool UnofficialCompat_Prefix()
+        {
+            return false;
+        }
+
+        public static NPC RandomSpouse(Farmer who, Random rand)
+        {
+            var spouses = GetSpouses(who, false).Values.ToList();
+            if (spouses.Count == 0)
+                return null;
+            return spouses[rand.Next(spouses.Count)];
+        }
     }
-    }
+}

@@ -5,6 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 	  <EnableHarmony>true</EnableHarmony>
+	  <GameModsPath>C:\Program Files (x86)\Steam\steamapps\common\Stardew Valley\Mods\PolyamorySweet</GameModsPath>
   </PropertyGroup>
 
   <ItemGroup>
@@ -13,9 +14,10 @@
 
 	<ItemGroup>
 		<Reference Include="SpaceCore">
-			<HintPath>$(GameModsPath)\SpaceCore\SpaceCore.dll</HintPath>
+			<HintPath>$(GamePath)\Mods\SpaceCore\SpaceCore.dll</HintPath>
 			<Private>false</Private>
 		</Reference>
 	</ItemGroup>
+
 	
 </Project>

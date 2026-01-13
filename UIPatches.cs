@@ -103,11 +103,6 @@ namespace PolyamorySweetLove
                     Vector2 textSize = Game1.smallFont.MeasureString(text);
                     b.DrawString(Game1.smallFont, text, new Vector2((float)(__instance.xPositionOnScreen + 192 + 8) - textSize.X / 2f, (float)__instance.sprites[i].bounds.Bottom - (textSize.Y - lineHeight)), Game1.textColor);
                
-                    
-                    
-                    
-                    
-                    
                     }
                 if (!isCurrentSpouse && !entry.IsChild)
                 {
@@ -138,9 +133,6 @@ namespace PolyamorySweetLove
                     b.Draw(Game1.objectSpriteSheet, new Vector2(__instance.xPositionOnScreen + IClickableMenu.borderWidth * 7 / 4 + 192, __instance.sprites[i].bounds.Y), Game1.getSourceRectForStandardTileSheet(Game1.objectSpriteSheet, housemate ? 808 : 458, 16, 16), Color.White, 0f, Vector2.Zero, 2f, SpriteEffects.None, 0.88f);
                 }
                 */
-
-
-
 
                 SocialPage.SocialEntry aentry = __instance.GetSocialEntry(i);
                 if (aentry.IsChild && aentry != null)

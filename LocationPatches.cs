@@ -132,7 +132,7 @@ namespace PolyamorySweetLove
                     __result = true;
                     return false;
                 }
-                else if (lantana != null && lantana.TilePoint.X == 54 && lantana.TilePoint.Y == 19 )
+                else if (lantana != null && lantana.TilePoint.X == 54 && lantana.TilePoint.Y == 19 && Game1.currentCursorTile.X == 54 &&  Game1.currentCursorTile.Y == 19)
                 {
                     __instance.createQuestionDialogue(SwimLantana, __instance.createYesNoResponses(), "LantanaBeachSwim");
                 }

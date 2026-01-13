@@ -853,7 +853,7 @@ namespace PolyamorySweetLove
         }
           */
 
-            public static bool NPC_tryToReceiveActiveObject_Prefix(NPC __instance, ref Farmer who, bool probe, Dictionary<string, string> ___dialogue, ref bool __result, ref string __state)
+            public static bool NPC_tryToReceiveActiveObject_Prefix_Mermaid(NPC __instance, ref Farmer who, bool probe, Dictionary<string, string> ___dialogue, ref bool __result, ref string __state)
         {
             try
             {
@@ -1019,6 +1019,17 @@ namespace PolyamorySweetLove
                 }
                 else if (who.ActiveObject.ParentSheetIndex == 460 && !probe)
                 {
+
+                    if ((Game1.characterData[__instance.Name].CustomFields != null && __instance.datable.Value == true && (Game1.characterData[__instance.Name].CustomFields.ContainsValue("IgnorePSL"))))
+                    {
+                        Game1.addHUDMessage(new HUDMessage("The Mod Author who made that character has requested that they not proposed to with this item."));
+                    }
+
+                    if ((Game1.characterData[__instance.Name].CustomFields != null && __instance.datable.Value == true && (Game1.characterData[__instance.Name].CustomFields.ContainsKey("IgnorePSL"))))
+                    {
+                        Game1.addHUDMessage(new HUDMessage("The Mod Author who made that character has requested that they not proposed to with this item."));
+                    }
+
                     //RejectMermaidPendant_Divorced
                     //RejectMermaidPendant_NeedHouseUpgrade
                     //RejectMermaidPendant_NotDatable
@@ -1221,8 +1232,9 @@ namespace PolyamorySweetLove
                     return true;
                 }
 
-                else if (who.ActiveItem.Name.Equals("Áine Flower") && !probe)
-                {
+                //else if (who.ActiveItem.Name.Equals("Áine Flower") && !probe) Lol!!! This might could have been why the Aine Flower wasnt working for non-English language peoples.
+                else if (who.ActiveItem.ItemId.Contains("AineFlower") && !probe)
+                        {
                     //if (!probe)
                     {
 
@@ -1397,7 +1409,7 @@ namespace PolyamorySweetLove
                 }
             catch (Exception ex)
             {
-                Monitor.Log($"PSL - Failed in {nameof(NPC_tryToReceiveActiveObject_Prefix)}:\n{ex}", LogLevel.Error);
+                Monitor.Log($"PSL - Failed in {nameof(NPC_tryToReceiveActiveObject_Prefix_Mermaid)}:\n{ex}", LogLevel.Error);
             }
 
             try
@@ -1411,13 +1423,13 @@ namespace PolyamorySweetLove
             }
             catch (Exception ex)
             {
-                Monitor.Log($"Failed in {nameof(NPC_tryToReceiveActiveObject_Prefix)}:\n{ex}", LogLevel.Error);
+                Monitor.Log($"Failed in {nameof(NPC_tryToReceiveActiveObject_Prefix_Mermaid)}:\n{ex}", LogLevel.Error);
             }
 
             return true;
         }
 
-        public static void NPC_tryToReceiveActiveObject_Postfix(ref Farmer who, string __state)
+        public static void NPC_tryToReceiveActiveObject_Postfix_Mermaid(ref Farmer who, string __state)
         {
             try
             {
@@ -1428,11 +1440,11 @@ namespace PolyamorySweetLove
             }
             catch (Exception ex)
             {
-                Monitor.Log($"Failed in {nameof(NPC_tryToReceiveActiveObject_Postfix)}:\n{ex}", LogLevel.Error);
+                Monitor.Log($"Failed in {nameof(NPC_tryToReceiveActiveObject_Postfix_Mermaid)}:\n{ex}", LogLevel.Error);
             }
         }
 
-        public static IEnumerable<CodeInstruction> NPC_tryToReceiveActiveObject_Transpiler(IEnumerable<CodeInstruction> instructions)
+        public static IEnumerable<CodeInstruction> NPC_tryToReceiveActiveObject_Transpiler_Mermaid(IEnumerable<CodeInstruction> instructions)
         {
 
             //THis fucking thing is likely the patch to change the jealousy to not happen when giving gifts

@@ -18,7 +18,7 @@ namespace PolyamorySweetLove
         public int MaxChildren { get; set; } = 2;
         public bool ShowParentNames { get; set; } = true;
         public string SpouseSleepOrder { get; set; } = "";
-        public float PercentChanceForSpouseInBed { get; set; } = .25f;
+        public int PercentChanceForSpouseInBed { get; set; } = 25;
         public int PercentChanceForSpouseInKitchen { get; set; } = 25;
         public int PercentChanceForSpouseAtPatio { get; set; } = 25;
 

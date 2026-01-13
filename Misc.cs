@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Buildings;
@@ -13,6 +14,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Xml.Linq;
+using static StardewValley.Minigames.MineCart;
 
 namespace PolyamorySweetLove
 {
@@ -35,7 +37,11 @@ namespace PolyamorySweetLove
                     currentSpouses[farmer.UniqueMultiplayerID][ospouse] = npc;
                 }
             }
-            SMonitor.Log($"Checking for extra spouses in {farmer.friendshipData.Count()} friends");
+            if (Game1.timeOfDay.ToString().Contains("00"))
+            {
+                SMonitor.Log($"Log Hourly of Checking for extra spouses in {farmer.friendshipData.Count()} friends");
+            }
+
             foreach (string friend in farmer.friendshipData.Keys)
             {
                 if (farmer.friendshipData[friend].IsMarried())
@@ -50,7 +56,10 @@ namespace PolyamorySweetLove
             }
             if (farmer.spouse is null && currentSpouses[farmer.UniqueMultiplayerID].Any())
                 farmer.spouse = currentSpouses[farmer.UniqueMultiplayerID].First().Key;
-            SMonitor.Log($"reloaded {currentSpouses[farmer.UniqueMultiplayerID].Count} spouses for {farmer.Name} {farmer.UniqueMultiplayerID}");
+            if (Game1.timeOfDay.ToString().Contains("00"))
+            {
+                SMonitor.Log($"Of Logging Hourly of reloaded {currentSpouses[farmer.UniqueMultiplayerID].Count} spouses for {farmer.Name} {farmer.UniqueMultiplayerID}");
+        }
         }
 
         /// <summary>
@@ -104,8 +113,6 @@ namespace PolyamorySweetLove
             Point kitchenspot = farmHouse.getKitchenStandingSpot();
             Point bedspot = farmHouse.getBedSpot();
             
-
-
             Farmer farmer = farmHouse.owner;
 
             if (farmer == null)
@@ -891,162 +898,6 @@ namespace PolyamorySweetLove
 
             }
 
-
-
-
-            /*
-            foreach (NPC spouse in allSpouses)
-            {
-                if (spouse is null)
-                    continue;
-
-                if (!farmHouse.Equals(spouse.currentLocation))
-                {
-                    if (spouse.TilePoint == porchspot)
-                    {
-                        porchSpouses.Add(spouse.Name);
-                        SMonitor.Log($"{spouse.Name} is on the porch ({spouse.currentLocation.Name})");
-                    }
-                    SMonitor.Log($"{spouse.Name} is not in farm house ({spouse.currentLocation.Name})");
-                    continue;
-                }
-
-                if(spouse.TilePoint == kitchenspot)
-                {
-                    kitchenSpouses.Add(spouse.Name);
-                    SMonitor.Log($"{spouse.Name} is in the Kitchen ({spouse.currentLocation.Name})");
-                }
-
-                if(spouse.TilePoint == bedspot)
-                {
-                    bedSpouses.Add(spouse.Name);
-                    SMonitor.Log($"{spouse.Name} is in the Bed ({spouse.currentLocation.Name})");
-                }
-
-                int type = myRand.Next(0, 100);
-
-                SMonitor.Log($"spouse rand {type}, bed: {Config.PercentChanceForSpouseInBed} kitchen {Config.PercentChanceForSpouseInKitchen}");
-
-                if (type < Config.PercentChanceForSpouseInBed)
-                {
-                    if (bedSpouses.Count < 1 && (Config.RoommateRomance || !farmer.friendshipData[spouse.Name].IsRoommate()) && HasSleepingAnimation(spouse.Name))
-                    {
-                        SMonitor.Log("made bed spouse: " + spouse.Name);
-                        bedSpouses.Add(spouse.Name);
-                    }
-
-                }
-                else if (type < Config.PercentChanceForSpouseInBed + Config.PercentChanceForSpouseInKitchen)
-                {
-                    if (kitchenSpouse == null)
-                    {
-                        SMonitor.Log("made kitchen spouse: " + spouse.Name);
-                        kitchenSpouse = spouse.Name;
-                    }
-                }
-                else if (type < Config.PercentChanceForSpouseInBed + Config.PercentChanceForSpouseInKitchen + Config.PercentChanceForSpouseAtPatio && patioSpouses.Count < 1)
-                {
-                    if (!Game1.isRaining && !Game1.IsWinter && !Game1.shortDayNameFromDayOfSeason(Game1.dayOfMonth).Equals("Sat") && !spouse.Name.Equals("Krobus") && spouse.Schedule == null && patioSpouses.Count <=1)
-                    {
-                        patioSpouses.Add(spouse.Name);
-                        SMonitor.Log("made patio spouse: " + spouse.Name);
-                        spouse.setUpForOutdoorPatioActivity();
-                        SMonitor.Log($"{spouse.Name} at {spouse.currentLocation.Name} {spouse.TilePoint}");
-                    }
-                }
-            } */
-            /*
-            foreach (NPC spouse in allSpouses)
-        {
-            if (spouse is null)
-                continue;
-            SMonitor.Log("placing " + spouse.Name);
-
-            if (patioSpouses.Count > 1 && patioSpouses.Contains(spouse.Name))
-            {
-                Game1.warpCharacter(spouse, "FarmHouse", getRandomOpenPointInFarmHouse(myRand, 0, 60));
-                spouse.setTilePosition(farmHouse.getRandomOpenPointInHouse(myRand));
-                spouse.faceDirection(myRand.Next(0, 4));
-                SMonitor.Log($"{spouse.Name} spouse random loc {spouse.TilePoint}");
-                spouse.setSpouseRoomMarriageDialogue();// I CAN SET THIS TO ANYTHING!!!        //setRandomAfternoonMarriageDialogue(Game1.timeOfDay, farmHouse, false);
-                patioSpouses.Remove(spouse.Name);
-            }
-
-            if (porchSpouses.Count > 1 && porchSpouses.Contains(spouse.Name))
-            {
-                Game1.warpCharacter(spouse, "FarmHouse", getRandomOpenPointInFarmHouse(myRand, 0, 60));
-                spouse.setTilePosition(farmHouse.getRandomOpenPointInHouse(myRand));
-                spouse.faceDirection(myRand.Next(0, 4));
-                SMonitor.Log($"{spouse.Name} spouse random loc {spouse.TilePoint}");
-                spouse.setSpouseRoomMarriageDialogue();// I CAN SET THIS TO ANYTHING!!!        //setRandomAfternoonMarriageDialogue(Game1.timeOfDay, farmHouse, false);
-                porchSpouses.Remove(spouse.Name);
-            }
-            Point spouseRoomSpot = new Point(-1, -1);
-
-            if (spouseRoomSpot.X < 0 && farmer.spouse == spouse.Name)
-            {
-                spouseRoomSpot = farmHouse.GetSpouseRoomSpot();
-                SMonitor.Log($"Using default spouse spot {spouseRoomSpot}");
-            }
-
-            if (!farmHouse.Equals(spouse.currentLocation))
-            {
-                SMonitor.Log($"{spouse.Name} is not in farm house ({spouse.currentLocation.Name})");
-                continue;
-            }
-
-            SMonitor.Log("in farm house");
-            spouse.shouldPlaySpousePatioAnimation.Value = false;
-
-            Vector2 bedPos = GetSpouseBedPosition(farmHouse, spouse.Name);
-            if (bedSpouses.Count > 1 && bedSpouses.Contains(spouse.Name))
-            {
-                Game1.warpCharacter(spouse, "FarmHouse", getRandomOpenPointInFarmHouse(myRand, 0, 60));
-                spouse.setTilePosition(farmHouse.getRandomOpenPointInHouse(myRand));
-                spouse.faceDirection(myRand.Next(0, 4));
-                SMonitor.Log($"{spouse.Name} spouse random location instead of piled in the bed {spouse.TilePoint}");
-
-                spouse.checkForMarriageDialogue(600, farmHouse);// I CAN SET THIS TO ANYTHING!!! 
-                bedSpouses.Remove(spouse.Name);
-
-            }
-            if (bedSpouses.Count > 0 && bedSpouses.Contains(spouse.Name) && bedPos != Vector2.Zero)
-            {
-                SMonitor.Log($"putting {spouse.Name} in bed");
-                spouse.position.Value = GetSpouseBedPosition(farmHouse, spouse.Name);
-            }
-
-            if (kitchenSpouses.Count > 1 && kitchenSpouses.Contains(spouse.Name))
-            {
-                Game1.warpCharacter(spouse, "FarmHouse", getRandomOpenPointInFarmHouse(myRand, 0, 60));
-                spouse.setTilePosition(farmHouse.getRandomOpenPointInHouse(myRand));
-                spouse.faceDirection(myRand.Next(0, 4));
-                SMonitor.Log($"{spouse.Name} spouse random location instead of piled in the Kitchen!!! {spouse.TilePoint}");
-                spouse.checkForMarriageDialogue(600, farmHouse);// I CAN SET THIS TO ANYTHING!!! 
-                kitchenSpouses.Remove(spouse.Name);
-            }
-
-            else if (kitchenSpouse == spouse.Name && !IsTileOccupied(farmHouse, farmHouse.getKitchenStandingSpot(), spouse.Name))
-            {
-                SMonitor.Log($"{spouse.Name} is in kitchen");
-
-                spouse.setTilePosition(farmHouse.getKitchenStandingSpot());
-                spouse.setRandomAfternoonMarriageDialogue(Game1.timeOfDay, farmHouse, false);
-            }
-            else if (spouseRoomSpot.X > -1 && !IsTileOccupied(farmHouse, spouseRoomSpot, spouse.Name))
-            {
-                SMonitor.Log($"{spouse.Name} is in spouse room");
-                spouse.setTilePosition(spouseRoomSpot);
-                spouse.setSpouseRoomMarriageDialogue();
-            }
-            else
-            {
-                spouse.setTilePosition(farmHouse.getRandomOpenPointInHouse(myRand));
-                spouse.faceDirection(myRand.Next(0, 4));
-                SMonitor.Log($"{spouse.Name} spouse random loc {spouse.TilePoint}");
-                spouse.setRandomAfternoonMarriageDialogue(Game1.timeOfDay, farmHouse, false);
-            }
-        }*/
         }
 
         public static void FixSpouseSpawnLocations()
@@ -1080,24 +931,41 @@ namespace PolyamorySweetLove
                     if (farmer == null)
                         continue;
 
-                    SMonitor.Log($"Checking farmhouse for {farmer.Name}");
+                    SMonitor.Log($"PSL - Checking farmhouse for {farmer.Name}");
                     Random random = Utility.CreateDaySaveRandom(farmer.UniqueMultiplayerID);
                     List<NPC> spouses = GetSpouses(farmer, false).Values.ToList();
                     ShuffleList(ref spouses, random);
+
+
+                    // Here assign for porch, kitchen, bed spouses
+                    NPC porchWife = new NPC();
+                    NPC kitchenWife = new NPC();
+                    NPC bedWife = new NPC();
+                    NPC patioWife = new NPC();
+
+
                     foreach (NPC spouse in spouses)
                     {
                         if (gettingMarriedFarmer == farmer && gettingMarriedNPC == spouse.Name)
                         {
-                            SMonitor.Log($"It is {spouse.Name}'s wedding day, staying on porch");
+                            SMonitor.Log($"PSL - It is {spouse.Name}'s wedding day, staying on porch");
+                            porchWife = spouse;
                         }
                         else if (gettingMarriedFarmer == farmer && gettingMarriedNPC != null && spouse.Name != gettingMarriedNPC && spouse.currentLocation == Game1.getFarm() && spouse.TilePoint == farmhouse.getPorchStandingSpot())
                         {
                             // If current farmer is getting married today, no other spouse can be on the porch
-                            SMonitor.Log($"{spouse.Name} is on the porch on {gettingMarriedNPC}'s wedding day");
-                            Point newPoint = farmhouse.getRandomOpenPointInHouse(random, tries: 100);
+                            SMonitor.Log($"PSL - {spouse.Name} is on the porch on {gettingMarriedNPC}'s wedding day");
+                            //Point newPoint = farmhouse.getRandomOpenPointInHouse(random, tries: 100);
+                            Point newPoint = new(-1, -1);
+                            for (int i = 0; i < 100; i++)
+                            {
+                                newPoint = ModEntry.getRandomOpenPoint(farmhouse, random, tries: 100);
+                                if (!isFarmHouseTileOccupied(farmhouse, newPoint, spouse.Name))
+                                    break;
+                            }
                             if (newPoint != Point.Zero)
                             {
-                                SMonitor.Log($"Moving {spouse.Name} to {newPoint}");
+                                SMonitor.Log($"PSL - Moving {spouse.Name} to {newPoint}");
                                 Game1.warpCharacter(spouse, farmer.homeLocation.Value, newPoint);
                                 spouse.faceDirection(random.Next(4));
                             }
@@ -1106,58 +974,139 @@ namespace PolyamorySweetLove
                         {
                             // Game code would have placed all bed spouses in the same place. Move them to their spot
                             Point bedSpot = ModEntry.GetSpouseBedEndPoint(farmhouse, spouse.Name);
-                            SMonitor.Log($"{spouse.Name} is in bed. Moving to {bedSpot}");
+                            SMonitor.Log($"PSL - {spouse.Name} is in bed. Moving to {bedSpot}");
                             spouse.setTilePosition(bedSpot);
                         }
-                        else
+                       
+
+                        
+                         else
+                         {
+                            Point newPoint = new(-1, -1);
+                            
+                            for (int i = 0; i < 100; i++)
+                             {
+                                 newPoint = ModEntry.getRandomOpenPoint(farmhouse, random, tries: 100);
+                                 if (!isFarmHouseTileOccupied(farmhouse, newPoint, spouse.Name))
+                                     break;
+                             }
+                             if (spouse.currentLocation == farmhouse)
+                             {
+                                 spouse.setTilePosition(newPoint);
+                             }
                         {
-                            // Check if any other spouses are on the same tile
-                            foreach (NPC other in spouses)
-                            {
-                                if (spouse == other)
-                                    continue;
-                                if (spouse.currentLocation == other.currentLocation && spouse.Tile == other.Tile)
+                                // Check if any other spouses are on the same tile
+                                foreach (NPC other in spouses)
                                 {
-                                    SMonitor.Log($"{spouse.Name} is at the same position as {other.Name}");
-                                    Point newPoint = farmhouse.getRandomOpenPointInHouse(random, tries:100);
-                                    if (newPoint != Point.Zero)
+                                    if (spouse == other)
+                                        continue;
+                                    if (spouse.currentLocation == other.currentLocation && spouse.Tile == other.Tile)
                                     {
-                                        SMonitor.Log($"Moving {other.Name} to {newPoint}");
-                                        if (other.currentLocation == farmhouse)
-                                            other.setTilePosition(newPoint);
-                                        else
-                                            Game1.warpCharacter(other, farmer.homeLocation.Value, newPoint);
-                                        other.faceDirection(random.Next(4));
+                                        SMonitor.Log($"PSL - {spouse.Name} is at the same position as {other.Name}, Rawr Check");
+                                        //Point newPoint = farmhouse.getRandomOpenPointInHouse(random, tries: 100);
+                                        if (newPoint != Point.Zero)
+                                        {
+                                            SMonitor.Log($"PSL - Moving {other.Name} to {newPoint}, Rawr!");
+                                            if (other.currentLocation == farmhouse)
+                                                other.setTilePosition(newPoint);
+                                            else
+                                                Game1.warpCharacter(other, "FarmHouse", newPoint);
+                                            other.faceDirection(random.Next(4));
+                                        }
                                     }
                                 }
                             }
                         }
                     }
+                 
+
+                    //List<NPC> grabBagofSpouses = spouses.Except(new List<NPC> { porchWife, kitchenWife, bedWife, patioWife }).ToList();
+
+                    List<NPC> grabBagofSpouses = GetSpouses(farmer,false).Values.ToList();
+                    if (grabBagofSpouses.Count >= 2)
+                    {
+                        if (!Game1.dayOfMonth.Equals("Saturday"))
+                        {
+                            if (Game1.random.Next() <= Config.PercentChanceForSpouseAtPatio)
+                            {
+
+                                int randomIndex = random.Next(grabBagofSpouses.Count);
+
+                                NPC npc = grabBagofSpouses[randomIndex];
+                                npc.setUpForOutdoorPatioActivity();
+                                patioWife = npc;
+
+                                grabBagofSpouses.RemoveAt(randomIndex);
+                            }
+
+
+                        }
+                        //Config.PercentChanceForSpouseAtPorch
+
+                        if (!Game1.weddingToday && Game1.random.NextDouble() < Config.PercentChanceForSpouseAtPorch  && !isFarmHouseTileOccupied(Game1.getFarm(), farmhouse.getPorchStandingSpot(), null))
+                        {
+                            int randomIndex = random.Next(1, grabBagofSpouses.Count);
+
+                            NPC npc = grabBagofSpouses[randomIndex];
+
+                            if (npc == patioWife)
+                            {
+                                npc = RandomSpouse(farmer, ModEntry.myRand);
+                            }
+                            if (npc == patioWife)
+                            {
+                                npc = RandomSpouse(farmer, random);
+                            }
+                            if (npc == patioWife)
+                            {
+                                npc = RandomSpouse(farmer, Game1.random);
+                            }
+
+                            Game1.warpCharacter(npc, "Farm", farmhouse.getPorchStandingSpot());
+                            npc.popOffAnyNonEssentialItems();
+                            npc.faceDirection(2);
+
+                            porchWife = npc;
+
+                            grabBagofSpouses.Remove(npc);
+
+                            SMonitor.Log($"PSL - {npc.Name} is Porch Spouse!");
+                        }
+
+                    }
+
+
+
                 }
             }
         }
 
         private static bool IsTileOccupied(GameLocation location, Point tileLocation, string characterToIgnore)
         {
-            Rectangle tileLocationRect = new Rectangle(tileLocation.X * 64 + 1, tileLocation.Y * 64 + 1, 62, 62);
-
-            for (int i = 0; i < location.characters.Count; i++)
             {
-                if (location.characters[i] != null && !location.characters[i].Name.Equals(characterToIgnore) && location.characters[i].GetBoundingBox().Intersects(tileLocationRect))
-                {
-                    SMonitor.Log($"Tile {tileLocation} is occupied by {location.characters[i].Name}");
+                Rectangle tileLocationRect = new Rectangle(tileLocation.X * 64 + 1, tileLocation.Y * 64 + 1, 62, 62);
 
-                    return true;
+                for (int i = 0; i < location.characters.Count; i++)
+                {
+                    if (location.characters[i] != null && !location.characters[i].Name.Equals(characterToIgnore) && location.characters[i].GetBoundingBox().Intersects(tileLocationRect))
+                    {
+                        SMonitor.Log($"PSL - Tile {tileLocation} is occupied by {location.characters[i].Name}");
+
+                        return true;
+                    }
                 }
+                return false;
             }
-            return false;
         }
 
         public static Point GetSpouseBedEndPoint(FarmHouse fh, string name)
         {
             var bedSpouses = GetBedSpouses(fh);
-
-            Point bedStart = fh.GetSpouseBed().GetBedSpot();
+            Point bedStart = new Point();
+            if (fh.GetSpouseBed() != null)
+            { bedStart = fh.GetSpouseBed().GetBedSpot(); }
+            else
+                bedStart = ModEntry.getRandomOpenPoint(fh, myRand,0,100);
             int bedWidth = GetBedWidth();
             bool up = fh.upgradeLevel > 1;
 
@@ -1255,13 +1204,16 @@ namespace PolyamorySweetLove
             {
                 return topOfHeadOffsets[name];
             }
-            //SMonitor.Log($"dont yet have offset for {name}");
+            //SMonitor.Log($"PSL - No sleep offset for {name}");
             int top = 0;
 
             if (name == "Krobus")
                 return 8;
+            if (ModEntry.SHelper.ModRegistry.IsLoaded("Arborsm.ScaleUpUnofficial"))
+            return 8;
 
-            Texture2D tex = Game1.content.Load<Texture2D>($"Characters\\{name}");
+
+            Texture2D tex = nomena.Sprite.spriteTexture;
 
             int sleepidx;
             string sleepAnim = SleepAnimation(name);
@@ -1274,7 +1226,14 @@ namespace PolyamorySweetLove
             }
 
             Color[] colors = new Color[tex.Width * tex.Height];
-            tex.GetData(colors);
+            try
+            {
+                tex.GetData(colors);
+            }
+            catch
+            {
+                return 0;
+            }
 
             //SMonitor.Log($"sleep index for {name} {sleepidx}");
 
@@ -1318,13 +1277,9 @@ namespace PolyamorySweetLove
 
             //if (!NPC.Name.Equals(__instance.getTextureName()))
             // {
-
             //   name = __instance.getTextureName();
-
             // }
-
             //Texture2D tex = SHelper.GameContent.Load<Texture2D>($"Characters/{name}");
-
             //if (tex == null)
             {
                 try
@@ -1574,3 +1529,161 @@ namespace PolyamorySweetLove
         }
     }
 }
+
+
+
+// Below is outdated Spouse placement code. It is here so I can find it if I want it.
+
+/*
+foreach (NPC spouse in allSpouses)
+{
+    if (spouse is null)
+        continue;
+
+    if (!farmHouse.Equals(spouse.currentLocation))
+    {
+        if (spouse.TilePoint == porchspot)
+        {
+            porchSpouses.Add(spouse.Name);
+            SMonitor.Log($"{spouse.Name} is on the porch ({spouse.currentLocation.Name})");
+        }
+        SMonitor.Log($"{spouse.Name} is not in farm house ({spouse.currentLocation.Name})");
+        continue;
+    }
+
+    if(spouse.TilePoint == kitchenspot)
+    {
+        kitchenSpouses.Add(spouse.Name);
+        SMonitor.Log($"{spouse.Name} is in the Kitchen ({spouse.currentLocation.Name})");
+    }
+
+    if(spouse.TilePoint == bedspot)
+    {
+        bedSpouses.Add(spouse.Name);
+        SMonitor.Log($"{spouse.Name} is in the Bed ({spouse.currentLocation.Name})");
+    }
+
+    int type = myRand.Next(0, 100);
+
+    SMonitor.Log($"spouse rand {type}, bed: {Config.PercentChanceForSpouseInBed} kitchen {Config.PercentChanceForSpouseInKitchen}");
+
+    if (type < Config.PercentChanceForSpouseInBed)
+    {
+        if (bedSpouses.Count < 1 && (Config.RoommateRomance || !farmer.friendshipData[spouse.Name].IsRoommate()) && HasSleepingAnimation(spouse.Name))
+        {
+            SMonitor.Log("made bed spouse: " + spouse.Name);
+            bedSpouses.Add(spouse.Name);
+        }
+
+    }
+    else if (type < Config.PercentChanceForSpouseInBed + Config.PercentChanceForSpouseInKitchen)
+    {
+        if (kitchenSpouse == null)
+        {
+            SMonitor.Log("made kitchen spouse: " + spouse.Name);
+            kitchenSpouse = spouse.Name;
+        }
+    }
+    else if (type < Config.PercentChanceForSpouseInBed + Config.PercentChanceForSpouseInKitchen + Config.PercentChanceForSpouseAtPatio && patioSpouses.Count < 1)
+    {
+        if (!Game1.isRaining && !Game1.IsWinter && !Game1.shortDayNameFromDayOfSeason(Game1.dayOfMonth).Equals("Sat") && !spouse.Name.Equals("Krobus") && spouse.Schedule == null && patioSpouses.Count <=1)
+        {
+            patioSpouses.Add(spouse.Name);
+            SMonitor.Log("made patio spouse: " + spouse.Name);
+            spouse.setUpForOutdoorPatioActivity();
+            SMonitor.Log($"{spouse.Name} at {spouse.currentLocation.Name} {spouse.TilePoint}");
+        }
+    }
+} */
+/*
+foreach (NPC spouse in allSpouses)
+{
+if (spouse is null)
+    continue;
+SMonitor.Log("placing " + spouse.Name);
+
+if (patioSpouses.Count > 1 && patioSpouses.Contains(spouse.Name))
+{
+    Game1.warpCharacter(spouse, "FarmHouse", getRandomOpenPointInFarmHouse(myRand, 0, 60));
+    spouse.setTilePosition(farmHouse.getRandomOpenPointInHouse(myRand));
+    spouse.faceDirection(myRand.Next(0, 4));
+    SMonitor.Log($"{spouse.Name} spouse random loc {spouse.TilePoint}");
+    spouse.setSpouseRoomMarriageDialogue();// I CAN SET THIS TO ANYTHING!!!        //setRandomAfternoonMarriageDialogue(Game1.timeOfDay, farmHouse, false);
+    patioSpouses.Remove(spouse.Name);
+}
+
+if (porchSpouses.Count > 1 && porchSpouses.Contains(spouse.Name))
+{
+    Game1.warpCharacter(spouse, "FarmHouse", getRandomOpenPointInFarmHouse(myRand, 0, 60));
+    spouse.setTilePosition(farmHouse.getRandomOpenPointInHouse(myRand));
+    spouse.faceDirection(myRand.Next(0, 4));
+    SMonitor.Log($"{spouse.Name} spouse random loc {spouse.TilePoint}");
+    spouse.setSpouseRoomMarriageDialogue();// I CAN SET THIS TO ANYTHING!!!        //setRandomAfternoonMarriageDialogue(Game1.timeOfDay, farmHouse, false);
+    porchSpouses.Remove(spouse.Name);
+}
+Point spouseRoomSpot = new Point(-1, -1);
+
+if (spouseRoomSpot.X < 0 && farmer.spouse == spouse.Name)
+{
+    spouseRoomSpot = farmHouse.GetSpouseRoomSpot();
+    SMonitor.Log($"Using default spouse spot {spouseRoomSpot}");
+}
+
+if (!farmHouse.Equals(spouse.currentLocation))
+{
+    SMonitor.Log($"{spouse.Name} is not in farm house ({spouse.currentLocation.Name})");
+    continue;
+}
+
+SMonitor.Log("in farm house");
+spouse.shouldPlaySpousePatioAnimation.Value = false;
+
+Vector2 bedPos = GetSpouseBedPosition(farmHouse, spouse.Name);
+if (bedSpouses.Count > 1 && bedSpouses.Contains(spouse.Name))
+{
+    Game1.warpCharacter(spouse, "FarmHouse", getRandomOpenPointInFarmHouse(myRand, 0, 60));
+    spouse.setTilePosition(farmHouse.getRandomOpenPointInHouse(myRand));
+    spouse.faceDirection(myRand.Next(0, 4));
+    SMonitor.Log($"{spouse.Name} spouse random location instead of piled in the bed {spouse.TilePoint}");
+
+    spouse.checkForMarriageDialogue(600, farmHouse);// I CAN SET THIS TO ANYTHING!!! 
+    bedSpouses.Remove(spouse.Name);
+
+}
+if (bedSpouses.Count > 0 && bedSpouses.Contains(spouse.Name) && bedPos != Vector2.Zero)
+{
+    SMonitor.Log($"putting {spouse.Name} in bed");
+    spouse.position.Value = GetSpouseBedPosition(farmHouse, spouse.Name);
+}
+
+if (kitchenSpouses.Count > 1 && kitchenSpouses.Contains(spouse.Name))
+{
+    Game1.warpCharacter(spouse, "FarmHouse", getRandomOpenPointInFarmHouse(myRand, 0, 60));
+    spouse.setTilePosition(farmHouse.getRandomOpenPointInHouse(myRand));
+    spouse.faceDirection(myRand.Next(0, 4));
+    SMonitor.Log($"{spouse.Name} spouse random location instead of piled in the Kitchen!!! {spouse.TilePoint}");
+    spouse.checkForMarriageDialogue(600, farmHouse);// I CAN SET THIS TO ANYTHING!!! 
+    kitchenSpouses.Remove(spouse.Name);
+}
+
+else if (kitchenSpouse == spouse.Name && !IsTileOccupied(farmHouse, farmHouse.getKitchenStandingSpot(), spouse.Name))
+{
+    SMonitor.Log($"{spouse.Name} is in kitchen");
+
+    spouse.setTilePosition(farmHouse.getKitchenStandingSpot());
+    spouse.setRandomAfternoonMarriageDialogue(Game1.timeOfDay, farmHouse, false);
+}
+else if (spouseRoomSpot.X > -1 && !IsTileOccupied(farmHouse, spouseRoomSpot, spouse.Name))
+{
+    SMonitor.Log($"{spouse.Name} is in spouse room");
+    spouse.setTilePosition(spouseRoomSpot);
+    spouse.setSpouseRoomMarriageDialogue();
+}
+else
+{
+    spouse.setTilePosition(farmHouse.getRandomOpenPointInHouse(myRand));
+    spouse.faceDirection(myRand.Next(0, 4));
+    SMonitor.Log($"{spouse.Name} spouse random loc {spouse.TilePoint}");
+    spouse.setRandomAfternoonMarriageDialogue(Game1.timeOfDay, farmHouse, false);
+}
+}*/
