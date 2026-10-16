@@ -57,72 +57,72 @@ namespace PolyamorySweetLove
             );
             configMenu.AddBoolOption(
                 mod: ModManifest,
-                name: () => "Mod Enabled?",
+                name: () => Helper.Translation.Get("config.enable-mod.name"),
                 getValue: () => Config.EnableMod,
                 setValue: value => Config.EnableMod = value
             );
             configMenu.AddNumberOption(
                 mod: ModManifest,
-                name: () => "Min Points To Marry",
+                name: () => Helper.Translation.Get("config.min-points-to-marry.name"),
                 getValue: () => Config.MinPointsToMarry,
                 setValue: value => Config.MinPointsToMarry = value
             );
             configMenu.AddNumberOption(
                 mod: ModManifest,
-                name: () => "Min Points To Date",
+                name: () => Helper.Translation.Get("config.min-points-to-date.name"),
                 getValue: () => Config.MinPointsToDate,
                 setValue: value => Config.MinPointsToDate = value
             );
 
             configMenu.AddBoolOption(
                 mod: ModManifest,
-                name: () => "Prevent Hostile Divorces",
+                name: () => Helper.Translation.Get("config.prevent-hostile-divorces.name"),
                 getValue: () => Config.PreventHostileDivorces,
                 setValue: value => Config.PreventHostileDivorces = value
             );
 
             configMenu.AddBoolOption(
                 mod: ModManifest,
-                name: () => "Complex Divorces",
+                name: () => Helper.Translation.Get("config.complex-divorce.name"),
                 getValue: () => Config.ComplexDivorce,
                 setValue: value => Config.ComplexDivorce = value
             );
 
             configMenu.AddBoolOption(
                 mod: ModManifest,
-                name: () => "Roommate Romance",
+                name: () => Helper.Translation.Get("config.roommate-romance.name"),
                 getValue: () => Config.RoommateRomance,
                 setValue: value => Config.RoommateRomance = value
             );
 
             configMenu.AddNumberOption(
                 mod: ModManifest,
-                name: () => "Max children",
+                name: () => Helper.Translation.Get("config.max-children.name"),
                 getValue: () => Config.MaxChildren,
                 setValue: value => Config.MaxChildren = value
             );
             configMenu.AddBoolOption(
                 mod: ModManifest,
-                name: () => "Show Parent Names",
+                name: () => Helper.Translation.Get("config.show-parent-names.name"),
                 getValue: () => Config.ShowParentNames,
                 setValue: value => Config.ShowParentNames = value
             );
             configMenu.AddBoolOption(
                 mod: ModManifest,
-                name: () => "Buy Pendants Anytime",
+                name: () => Helper.Translation.Get("config.buy-pendants-anytime.name"),
                 getValue: () => Config.BuyPendantsAnytime,
                 setValue: value => Config.BuyPendantsAnytime = value
             );
             configMenu.AddNumberOption(
                 mod: ModManifest,
-                name: () => "Pendant Price",
+                name: () => Helper.Translation.Get("config.pendant-price.name"),
                 getValue: () => Config.PendantPrice,
                 setValue: value => Config.PendantPrice = value
             );
 
             configMenu.AddNumberOption(
                 mod: ModManifest,
-                name: () => "Percent Chance For Spouse to Be In Bed",
+                name: () => Helper.Translation.Get("config.percent-chance-for-spouse-in-bed.name"),
                 getValue: () => Config.PercentChanceForSpouseInBed,
                 setValue: value => Config.PercentChanceForSpouseInBed = value,
                 min: 0,
@@ -131,7 +131,7 @@ namespace PolyamorySweetLove
 
             configMenu.AddNumberOption(
                 mod: ModManifest,
-                name: () => "Percent Chance For Spouse to Be In Kitchen",
+                name: () => Helper.Translation.Get("config.percent-chance-for-spouse-in-kitchen.name"),
                 getValue: () => Config.PercentChanceForSpouseInKitchen,
                 setValue: value => Config.PercentChanceForSpouseInKitchen = value,
                 min: 0,
@@ -140,7 +140,7 @@ namespace PolyamorySweetLove
 
             configMenu.AddNumberOption(
                 mod: ModManifest,
-                name: () => "Percent Chance For Spouse to Be In Patio",
+                name: () => Helper.Translation.Get("config.percent-chance-for-spouse-at-patio.name"),
                 getValue: () => Config.PercentChanceForSpouseAtPatio,
                 setValue: value => Config.PercentChanceForSpouseAtPatio = value,
                 min: 0,
@@ -149,35 +149,35 @@ namespace PolyamorySweetLove
 
             configMenu.AddNumberOption(
               mod: ModManifest,
-              name: () => "Percent Chance For Pregnancy Question (0.0 - 1)",
+              name: () => Helper.Translation.Get("config.percent-chance-for-birthing-question.name"),
               getValue: () => Config.PercentChanceForBirthingQuestion,
               setValue: value => Config.PercentChanceForBirthingQuestion = value,
-               tooltip: () => "Sets the chance for a birthing question at night. 1 is 100 percent."
+               tooltip: () => Helper.Translation.Get("config.percent-chance-for-birthing-question.tooltip")
           );
 
             configMenu.AddNumberOption(
             mod: ModManifest,
-            name: () => "Percent Chance For Birth Sex to be a Girl (0.0 - 1)",
+            name: () => Helper.Translation.Get("config.percent-chance-for-birth-sex.name"),
             getValue: () => Config.PercentChanceForBirthSex,
             setValue: value => Config.PercentChanceForBirthSex = value,
-             tooltip: () => "Sets whether the next baby will be a girl. Default is 0.6, a round number reflecting population norms."
+             tooltip: () => Helper.Translation.Get("config.percent-chance-for-birth-sex.tooltip")
         );
 
 
             configMenu.AddBoolOption(
                 mod: ModManifest,
-                name: () => "Impregnating Mother",
+                name: () => Helper.Translation.Get("config.impregnating-mother.name"),
                 getValue: () => Config.ImpregnatingMother,
                 setValue: value => Config.ImpregnatingMother = value,
-                tooltip: () => "Allows a female farmer to impregnate her wife. Must be set to false if Impregnating Femme NPC is set to true."
+                tooltip: () => Helper.Translation.Get("config.impregnating-mother.tooltip")
             );
 
             configMenu.AddBoolOption(
                mod: ModManifest,
-               name: () => "Impregnating Femme NPC",
+               name: () => Helper.Translation.Get("config.impregnating-femme-n-p-c.name"),
                getValue: () => Config.ImpregnatingFemmeNPC,
                setValue: value => Config.ImpregnatingFemmeNPC = value,
-               tooltip: () => "Allows a female Farmer to get impregnated by her wife. Must be set to false if Impregnating Mother is set to true."
+               tooltip: () => Helper.Translation.Get("config.impregnating-femme-n-p-c.tooltip")
            );
         LoadModApis();
         }

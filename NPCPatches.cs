@@ -1022,12 +1022,12 @@ namespace PolyamorySweetLove
 
                     if ((Game1.characterData[__instance.Name].CustomFields != null && __instance.datable.Value == true && (Game1.characterData[__instance.Name].CustomFields.ContainsValue("IgnorePSL"))))
                     {
-                        Game1.addHUDMessage(new HUDMessage("The Mod Author who made that character has requested that they not proposed to with this item."));
+                        Game1.addHUDMessage(new HUDMessage(ModEntry.SHelper.Translation.Get("message.proposal-item-restricted-alt")));
                     }
 
                     if ((Game1.characterData[__instance.Name].CustomFields != null && __instance.datable.Value == true && (Game1.characterData[__instance.Name].CustomFields.ContainsKey("IgnorePSL"))))
                     {
-                        Game1.addHUDMessage(new HUDMessage("The Mod Author who made that character has requested that they not proposed to with this item."));
+                        Game1.addHUDMessage(new HUDMessage(ModEntry.SHelper.Translation.Get("message.proposal-item-restricted-alt")));
                     }
 
                     //RejectMermaidPendant_Divorced
@@ -1261,7 +1261,7 @@ namespace PolyamorySweetLove
                                         }
                                         else
                                         {
-                                            Game1.addHUDMessage(new HUDMessage("The room and patio will change when you enter the farmhouse."));
+                                            Game1.addHUDMessage(new HUDMessage(ModEntry.SHelper.Translation.Get("message.room-update")));
                                         }
 
                                         who.changeFriendship(25, __instance);

@@ -769,7 +769,7 @@ namespace PolyamorySweetLove
                                 }
                                 else
                                 {
-                                    Game1.addHUDMessage(new HUDMessage("The room and patio will change when you enter the farmhouse."));
+                                    Game1.addHUDMessage(new HUDMessage(ModEntry.SHelper.Translation.Get("message.room-update")));
                                 }
                             }
                         }
@@ -923,12 +923,12 @@ namespace PolyamorySweetLove
             {
                 if ((Game1.characterData[e.Npc.Name].CustomFields != null && e.Npc.datable.Value == true && (Game1.characterData[e.Npc.Name].CustomFields.ContainsValue("IgnorePSL"))))
                 {
-                    Game1.addHUDMessage(new HUDMessage("The Mod Author who made character has requested that they not proposed to with this item."));
+                    Game1.addHUDMessage(new HUDMessage(ModEntry.SHelper.Translation.Get("message.proposal-item-restricted")));
                 }
 
                 if ((Game1.characterData[e.Npc.Name].CustomFields != null && e.Npc.datable.Value == true && (Game1.characterData[e.Npc.Name].CustomFields.ContainsKey("IgnorePSL"))))
                 {
-                    Game1.addHUDMessage(new HUDMessage("The Mod Author who made character has requested that they not proposed to with this item."));
+                    Game1.addHUDMessage(new HUDMessage(ModEntry.SHelper.Translation.Get("message.proposal-item-restricted")));
                 }
 
                 e.Npc.CurrentDialogue.Pop();
@@ -1754,7 +1754,7 @@ namespace PolyamorySweetLove
             {
                 if (weapon.GetEnchantmentLevel<MermaidEnchantment>() >=1)
 
-                    Game1.addHUDMessage(new HUDMessage("You cannot add an enchantment during the Mermaid Enchantment Process."));
+                    Game1.addHUDMessage(new HUDMessage(ModEntry.SHelper.Translation.Get("message.mermaid-enchantment-restricted")));
 
                 return false;
             }
@@ -1783,7 +1783,7 @@ namespace PolyamorySweetLove
 
                                 DelayedAction.playSoundAfterDelay("discoverMineral", 400);
                                 Game1.Multiplayer.globalChatInfoMessage("InfinityWeapon", Game1.player.name.Value, TokenStringBuilder.ItemNameFor(weapon));
-                                Game1.addHUDMessage(new HUDMessage("You have obtained the Mermaid's Eternal Kiss!!!"));
+                                Game1.addHUDMessage(new HUDMessage(ModEntry.SHelper.Translation.Get("message.mermaid-eternal-kiss")));
 
                                 MermaidEnchantment enchant = weapon.GetEnchantmentOfType<MermaidEnchantment>();
                                 if (enchant != null)

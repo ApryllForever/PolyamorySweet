@@ -196,7 +196,7 @@ namespace PolyamorySweetLove
                     DelayedAction.playSoundAfterDelay("treethud", 1000);
                 }
                 else
-                    Game1.addHUDMessage(new HUDMessage("You need the silver key in your hand to open this gate.", 1));
+                    Game1.addHUDMessage(new HUDMessage(ModEntry.SHelper.Translation.Get("message.silver-key-required"), 1));
                 Game1.playSound("batScreech");
             }
           
